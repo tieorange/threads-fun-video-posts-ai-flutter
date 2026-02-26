@@ -43,6 +43,16 @@ const LANG_MAP: Record<Language, string[]> = {
 export class YtDlpDataSource {
   constructor(private readonly storagePath: string) { }
 
+  async checkDependencies(): Promise<void> {
+    try {
+      await ytDlp('--version', { version: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      logger.error('yt_dlp_dependency_check_failed', `yt-dlp not found or not working: ${msg}`, { layer: 'data' });
+      throw new AppError('DEPENDENCY_MISSING', `yt-dlp is required but could not be executed: ${msg}`, 500);
+    }
+  }
+
   async getMetadata(url: string): Promise<VideoMetadata> {
     const start = Date.now();
     logger.info('yt_dlp_get_metadata_start', 'Fetching video metadata', { layer: 'data', data: { url } });

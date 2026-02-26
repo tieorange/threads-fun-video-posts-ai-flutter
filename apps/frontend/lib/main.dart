@@ -5,6 +5,7 @@ import 'core/di/injection.dart';
 import 'core/logging/log_entry.dart';
 import 'core/logging/logger.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'core/utils/router.dart';
 import 'i18n/strings.g.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -76,7 +77,12 @@ void main() {
   log.info('app_start', 'App starting', layer: AppLayer.core, feature: 'core');
 
   initCubits();
-  runApp(TranslationProvider(child: const FunnyThreadsApp()));
+  runApp(
+    MultiBlocProvider(
+      providers: [BlocProvider(create: (_) => sl<ThemeCubit>())],
+      child: TranslationProvider(child: const FunnyThreadsApp()),
+    ),
+  );
 }
 
 class FunnyThreadsApp extends StatelessWidget {
@@ -84,16 +90,20 @@ class FunnyThreadsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Funny Threads AI',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      routerConfig: appRouter,
-      debugShowCheckedModeBanner: false,
-      locale: TranslationProvider.of(context).flutterLocale, // use slang locale
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return MaterialApp.router(
+          title: 'Funny Threads AI',
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          routerConfig: appRouter,
+          debugShowCheckedModeBanner: false,
+          locale: TranslationProvider.of(context).flutterLocale, // use slang locale
+          supportedLocales: AppLocaleUtils.supportedLocales,
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        );
+      },
     );
   }
 }

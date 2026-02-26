@@ -9,7 +9,9 @@
         "analyze": "Аналізувати",
         "loading": "Завантаження...",
         "cancel": "Скасувати",
-        "refresh": "Оновити"
+        "refresh": "Оновити",
+        "toggleDark": "Темна тема",
+        "toggleLight": "Світла тема"
     },
     "analyze": {
         "title": "Funny Threads AI",

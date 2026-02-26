@@ -17,6 +17,19 @@ export interface ClipOptions {
 export class FfmpegDataSource implements IFfmpegDataSource {
   constructor(private readonly options: ClipOptions) { }
 
+  async checkDependencies(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.getAvailableCodecs((err, _codecs) => {
+        if (err) {
+          logger.error('ffmpeg_dependency_check_failed', `ffmpeg not found or not working: ${err.message}`, { layer: 'data' });
+          reject(new AppError('DEPENDENCY_MISSING', `ffmpeg is required but could not be executed: ${err.message}`, 500));
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
   cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void> {
     const start = Date.now();
     logger.info('ffmpeg_cut_clip_start', 'Starting ffmpeg cut', {

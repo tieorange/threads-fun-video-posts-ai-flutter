@@ -48,6 +48,8 @@ dependencies:
   pointer_interceptor: ^0.10.1+2
   slang: ^3.31.0
   slang_flutter: ^3.31.0
+  shared_preferences: ^2.5.4
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:

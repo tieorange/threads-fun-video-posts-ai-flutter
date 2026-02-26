@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 106 (53 per locale)
+/// Strings: 110 (55 per locale)
 ///
-/// Built on 2026-02-26 at 21:11 UTC
+/// Built on 2026-02-26 at 22:31 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -174,6 +174,8 @@ class _StringsCommonUk {
 	String get loading => 'Завантаження...';
 	String get cancel => 'Скасувати';
 	String get refresh => 'Оновити';
+	String get toggleDark => 'Темна тема';
+	String get toggleLight => 'Світла тема';
 }
 
 // Path: analyze
@@ -333,6 +335,8 @@ class _StringsCommonEn implements _StringsCommonUk {
 	@override String get loading => 'Loading...';
 	@override String get cancel => 'Cancel';
 	@override String get refresh => 'Refresh';
+	@override String get toggleDark => 'Dark Theme';
+	@override String get toggleLight => 'Light Theme';
 }
 
 // Path: analyze
@@ -458,6 +462,8 @@ extension on Translations {
 			case 'common.loading': return 'Завантаження...';
 			case 'common.cancel': return 'Скасувати';
 			case 'common.refresh': return 'Оновити';
+			case 'common.toggleDark': return 'Темна тема';
+			case 'common.toggleLight': return 'Світла тема';
 			case 'analyze.title': return 'Funny Threads AI';
 			case 'analyze.subtitle': return 'Перетворюйте YouTube відео на віральні кліпи';
 			case 'analyze.urlLabel': return 'YouTube URL';
@@ -519,6 +525,8 @@ extension on _StringsEn {
 			case 'common.loading': return 'Loading...';
 			case 'common.cancel': return 'Cancel';
 			case 'common.refresh': return 'Refresh';
+			case 'common.toggleDark': return 'Dark Theme';
+			case 'common.toggleLight': return 'Light Theme';
 			case 'analyze.title': return 'Funny Threads AI';
 			case 'analyze.subtitle': return 'Turn a YouTube video into viral clips';
 			case 'analyze.urlLabel': return 'YouTube URL';

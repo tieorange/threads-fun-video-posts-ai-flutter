@@ -10,6 +10,7 @@ export type ErrorCode =
   | 'CLIP_CUT_FAILED'
   | 'JOB_NOT_FOUND'
   | 'JOB_LOAD_FAILED'
+  | 'DEPENDENCY_MISSING'
   | 'INTERNAL_ERROR';
 
 export class AppError extends Error {

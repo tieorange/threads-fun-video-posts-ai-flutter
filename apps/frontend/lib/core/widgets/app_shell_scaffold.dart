@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../di/injection.dart';
 import '../logging/log_exporter.dart';
+import '../theme/theme_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../i18n/strings.g.dart';
 
 /// Shared scaffold used by every page.
@@ -34,7 +36,7 @@ class AppShellScaffold extends StatelessWidget {
       appBar: AppBar(
         title: title != null ? Text(title!) : null,
         leading: leading,
-        actions: [...?actions, _CopyLogsButton()],
+        actions: [...?actions, const _ThemeToggleButton(), _CopyLogsButton()],
       ),
       body: body,
       floatingActionButton: floatingActionButton,
@@ -58,6 +60,24 @@ class _CopyLogsButton extends StatelessWidget {
             SnackBar(content: Text(t.common.logsCopied), duration: const Duration(seconds: 3)),
           );
         }
+      },
+    );
+  }
+}
+
+class _ThemeToggleButton extends StatelessWidget {
+  const _ThemeToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        final isDark = themeMode == ThemeMode.dark;
+        return IconButton(
+          icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          tooltip: isDark ? t.common.toggleLight : t.common.toggleDark,
+          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+        );
       },
     );
   }

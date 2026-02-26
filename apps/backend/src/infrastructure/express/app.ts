@@ -49,6 +49,8 @@ export async function createApp(storagePath: string): Promise<Application> {
   await localStorage.ensureDirectories();
 
   const ytDlpDs = new YtDlpDataSource(storagePath);
+  await ytDlpDs.checkDependencies();
+
   const ffmpegDs = new FfmpegDataSource({
     preset: config.processVideoPreset,
     crf: config.processVideoCrf,
@@ -56,6 +58,8 @@ export async function createApp(storagePath: string): Promise<Application> {
     fps: config.processTargetFps,
     audioBitrate: config.processAudioBitrate,
   });
+  await ffmpegDs.checkDependencies();
+
   const videoCacheDs = new VideoCacheDataSource(storagePath);
 
   const videoRepo = new VideoRepositoryImpl(ytDlpDs, videoCacheDs);
