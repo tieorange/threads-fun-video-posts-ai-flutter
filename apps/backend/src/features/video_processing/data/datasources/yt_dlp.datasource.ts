@@ -161,7 +161,7 @@ export class YtDlpDataSource {
         const args = [
           url,
           '--output', outputPath,
-          '--format', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+          '--format', 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
           '--merge-output-format', 'mp4',
           '--no-warnings',
           '--no-check-certificate',

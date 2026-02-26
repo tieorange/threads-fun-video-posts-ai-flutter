@@ -18,6 +18,7 @@ import { JobRepositoryImpl } from '../../features/video_processing/data/reposito
 import { YtDlpDataSource } from '../../features/video_processing/data/datasources/yt_dlp.datasource';
 import { FfmpegDataSource } from '../../features/video_processing/data/datasources/ffmpeg.datasource';
 import { LocalStorageDataSource } from '../../features/video_processing/data/datasources/local_storage.datasource';
+import { VideoCacheDataSource } from '../../features/video_processing/data/datasources/video_cache.datasource';
 
 export async function createApp(storagePath: string): Promise<Application> {
   const app = express();
@@ -47,8 +48,9 @@ export async function createApp(storagePath: string): Promise<Application> {
 
   const ytDlpDs = new YtDlpDataSource(storagePath);
   const ffmpegDs = new FfmpegDataSource();
+  const videoCacheDs = new VideoCacheDataSource(storagePath);
 
-  const videoRepo = new VideoRepositoryImpl(ytDlpDs);
+  const videoRepo = new VideoRepositoryImpl(ytDlpDs, videoCacheDs);
   const jobRepo = new JobRepositoryImpl(localStorage);
 
   const analyzeUseCase = new AnalyzeVideoUseCase(videoRepo);

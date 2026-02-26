@@ -21,7 +21,14 @@ export class FfmpegDataSource implements IFfmpegDataSource {
         .output(outputPath)
         .videoCodec('libx264')
         .audioCodec('aac')
-        .outputOptions(['-movflags faststart'])
+        .outputOptions([
+          '-preset', 'veryfast',
+          '-crf', '24',
+          '-vf', "scale='min(1280,iw)':-2,fps=30",
+          '-pix_fmt', 'yuv420p',
+          '-b:a', '96k',
+          '-movflags', '+faststart',
+        ])
         .on('end', () => {
           logger.info('ffmpeg_cut_clip_done', 'Clip cut successfully', {
             layer: 'data',

@@ -3,9 +3,13 @@ import { TranscriptSegment } from '../../domain/entities/transcript_segment';
 import { VideoMetadata } from '../../domain/entities/video_metadata';
 import { IVideoRepository } from '../../domain/repositories/video_repository.interface';
 import { YtDlpDataSource } from '../datasources/yt_dlp.datasource';
+import { VideoCacheDataSource } from '../datasources/video_cache.datasource';
 
 export class VideoRepositoryImpl implements IVideoRepository {
-  constructor(private readonly ytDlp: YtDlpDataSource) { }
+  constructor(
+    private readonly ytDlp: YtDlpDataSource,
+    private readonly videoCache: VideoCacheDataSource,
+  ) { }
 
   getMetadata(url: string): Promise<VideoMetadata> {
     return this.ytDlp.getMetadata(url);
@@ -15,7 +19,19 @@ export class VideoRepositoryImpl implements IVideoRepository {
     return this.ytDlp.getCaptions(url, language);
   }
 
-  downloadVideo(url: string, videoId: string, onProgress?: (percent: number) => void): Promise<string> {
-    return this.ytDlp.downloadVideo(url, videoId, onProgress);
+  downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void): Promise<string> {
+    return this.ytDlp.downloadVideo(url, jobId, onProgress);
+  }
+
+  getCachedVideoPath(videoId: string): Promise<string | null> {
+    return this.videoCache.getCachedVideoPath(videoId);
+  }
+
+  linkToCache(jobId: string, videoId: string): Promise<void> {
+    return this.videoCache.linkToCache(jobId, videoId);
+  }
+
+  symlinkFromCache(videoId: string, jobId: string): Promise<string> {
+    return this.videoCache.symlinkFromCache(videoId, jobId);
   }
 }

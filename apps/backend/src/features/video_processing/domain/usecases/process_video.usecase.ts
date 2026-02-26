@@ -54,40 +54,66 @@ export class ProcessVideoUseCase {
     const { jobId } = job;
     try {
       await this.updateJob(job, { status: 'running', progress: 10 });
-      logger.info('job_running', 'Job started, downloading video', { layer: 'domain', jobId });
+      logger.info('job_running', 'Job started, fetching metadata', { layer: 'domain', jobId });
 
-      const dlStart = Date.now();
-      const videoPath = await this.withTimeout(
-        this.videoRepository.downloadVideo(job.youtubeUrl, jobId, (percent) => {
-          const downloadProgress = 10 + Math.round((percent / 100) * 40);
-          this.updateJob(job, { progress: downloadProgress }).catch((e: unknown) => {
-            logger.warn('job_progress_update_failed', String(e), { layer: 'domain', jobId });
-          });
-        }),
-        config.processDownloadTimeoutMs,
-        'DOWNLOAD_TIMEOUT',
-        `Video download timed out after ${config.processDownloadTimeoutMs}ms`,
-      );
-      await this.updateJob(job, { progress: 50 });
-      logger.info('job_download_done', 'Video downloaded', {
-        layer: 'domain',
-        jobId,
-        durationMs: Date.now() - dlStart,
-        data: { videoPath },
-      });
+      // Fetch metadata first to get videoId for caching
+      const metadata = await this.videoRepository.getMetadata(job.youtubeUrl);
+      const videoId = metadata.videoId;
+
+      let videoPath: string;
+      const cachedPath = await this.videoRepository.getCachedVideoPath(videoId);
+
+      if (cachedPath) {
+        logger.info('job_cache_hit', 'Using cached video', { layer: 'domain', jobId, data: { videoId, cachedPath } });
+        videoPath = await this.videoRepository.symlinkFromCache(videoId, jobId);
+        await this.updateJob(job, { progress: 50 });
+      } else {
+        logger.info('job_cache_miss', 'Downloading video', { layer: 'domain', jobId, data: { videoId } });
+        const dlStart = Date.now();
+        videoPath = await this.withTimeout(
+          this.videoRepository.downloadVideo(job.youtubeUrl, jobId, (percent) => {
+            const downloadProgress = 10 + Math.round((percent / 100) * 40);
+            this.updateJob(job, { progress: downloadProgress }).catch((e: unknown) => {
+              logger.warn('job_progress_update_failed', String(e), { layer: 'domain', jobId });
+            });
+          }),
+          config.processDownloadTimeoutMs,
+          'DOWNLOAD_TIMEOUT',
+          `Video download timed out after ${config.processDownloadTimeoutMs}ms`,
+        );
+
+        // Link to cache for future use
+        await this.videoRepository.linkToCache(jobId, videoId);
+
+        await this.updateJob(job, { progress: 50 });
+        logger.info('job_download_done', 'Video downloaded and cached', {
+          layer: 'domain',
+          jobId,
+          durationMs: Date.now() - dlStart,
+          data: { videoPath, videoId },
+        });
+      }
 
       const clips: ClipArtifact[] = [];
       const total = payload.moments.length;
+      let completedCount = 0;
 
-      for (let i = 0; i < total; i++) {
-        const moment = payload.moments[i];
-        if (!moment) continue;
+      // Implement bounded concurrency
+      const concurrency = config.processClipConcurrency;
+      const queue = [...payload.moments];
+      const activePromises: Promise<void>[] = [];
 
+      const processNext = async (): Promise<void> => {
+        if (queue.length === 0) return;
+        const moment = queue.shift();
+        if (!moment) return;
+
+        const momentIndex = payload.moments.indexOf(moment);
         const outputFile = `${jobId}_${moment.id}.mp4`;
         const outputPath = path.join(this.clipsStoragePath, outputFile);
         const durationSec = moment.endSec - moment.startSec;
 
-        logger.info('job_clip_start', `Cutting clip ${i + 1}/${total}`, {
+        logger.info('job_clip_start', `Cutting clip ${momentIndex + 1}/${total}`, {
           layer: 'domain',
           jobId,
           data: { momentId: moment.id, startSec: moment.startSec, durationSec },
@@ -108,15 +134,28 @@ export class ProcessVideoUseCase {
           downloadUrl: `/media/clips/${outputFile}`,
         });
 
-        const progress = 50 + Math.round(((i + 1) / total) * 50);
-        logger.info('job_clip_done', `Clip ${i + 1}/${total} done`, {
+        completedCount++;
+        const progress = 50 + Math.round((completedCount / total) * 50);
+        logger.info('job_clip_done', `Clip ${momentIndex + 1}/${total} done`, {
           layer: 'domain',
           jobId,
           durationMs: Date.now() - clipStart,
           data: { momentId: moment.id, outputFile, progress },
         });
+
+        // Update job record with latest clips and progress
         await this.updateJob(job, { progress, clips: [...clips] });
+
+        // Process next in queue
+        await processNext();
+      };
+
+      // Start initial batch of workers
+      for (let i = 0; i < Math.min(concurrency, total); i++) {
+        activePromises.push(processNext());
       }
+
+      await Promise.all(activePromises);
 
       await this.updateJob(job, { status: 'done', progress: 100, clips });
       logger.info('job_done', 'All clips cut, job complete', {
