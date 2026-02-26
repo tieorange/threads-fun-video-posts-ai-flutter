@@ -35,8 +35,19 @@ class ValidateAndParseJsonUseCase {
             errors.add('Moment $i is not an object');
             continue;
           }
-          for (final field in ['id', 'startSec', 'endSec', 'caption', 'postText', 'reason']) {
-            if (m[field] == null) errors.add('Moment $i missing "$field"');
+          for (final field in ['id', 'caption', 'postText', 'reason']) {
+            if (m[field] == null) {
+              errors.add('Moment $i missing "$field"');
+            } else if (m[field] is! String) {
+              errors.add('Moment $i "$field" must be a string');
+            }
+          }
+          for (final field in ['startSec', 'endSec']) {
+            if (m[field] == null) {
+              errors.add('Moment $i missing "$field"');
+            } else if (m[field] is! num) {
+              errors.add('Moment $i "$field" must be a number');
+            }
           }
         }
       }

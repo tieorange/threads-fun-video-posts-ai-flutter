@@ -1,4 +1,4 @@
-import { FunnyMoment } from './funny_moment.js';
+import { FunnyMoment } from './funny_moment';
 
 export type JobStatus = 'queued' | 'running' | 'failed' | 'done';
 

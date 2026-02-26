@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import '../logging/log_buffer.dart';
+import '../logging/log_exporter.dart';
+import '../logging/logger.dart';
 import '../../features/video_processing/data/datasources/video_remote_datasource.dart';
 import '../../features/video_processing/data/repositories/video_repository_impl.dart';
 import '../../features/video_processing/data/repositories/process_repository_impl.dart';
@@ -22,6 +25,11 @@ void setupDependencies() {
     defaultValue: 'http://localhost:3000',
   );
 
+  // Logging (singletons — shared across whole app)
+  sl.registerLazySingleton<LogBuffer>(() => LogBuffer());
+  sl.registerLazySingleton<AppLogger>(() => AppLogger(sl<LogBuffer>()));
+  sl.registerLazySingleton<LogExporter>(() => LogExporter(sl<LogBuffer>()));
+
   // Dio
   sl.registerLazySingleton<Dio>(() => Dio(
         BaseOptions(
@@ -32,7 +40,7 @@ void setupDependencies() {
       ));
 
   // Datasources
-  sl.registerLazySingleton(() => VideoRemoteDatasource(sl<Dio>()));
+  sl.registerLazySingleton(() => VideoRemoteDatasource(sl<Dio>(), sl<AppLogger>()));
 
   // Repositories
   sl.registerLazySingleton(() => VideoRepositoryImpl(sl<VideoRemoteDatasource>()));
@@ -46,11 +54,11 @@ void setupDependencies() {
   sl.registerLazySingleton(() => PollJobStatusUseCase(sl<ProcessRepositoryImpl>()));
 
   // Cubits (factories — new instance per registration)
-  sl.registerFactory(() => AnalyzeCubit(sl<AnalyzeVideoUseCase>()));
-  sl.registerFactory(() => PromptCubit(sl<BuildAiPromptUseCase>()));
-  sl.registerFactory(() => JsonPasteCubit(sl<ValidateAndParseJsonUseCase>()));
-  sl.registerFactory(() => MomentsReviewCubit());
+  sl.registerFactory(() => AnalyzeCubit(sl<AnalyzeVideoUseCase>(), sl<AppLogger>()));
+  sl.registerFactory(() => PromptCubit(sl<BuildAiPromptUseCase>(), sl<AppLogger>()));
+  sl.registerFactory(() => JsonPasteCubit(sl<ValidateAndParseJsonUseCase>(), sl<AppLogger>()));
+  sl.registerFactory(() => MomentsReviewCubit(sl<AppLogger>()));
   sl.registerFactory(
-    () => ProcessCubit(sl<SubmitProcessUseCase>(), sl<PollJobStatusUseCase>()),
+    () => ProcessCubit(sl<SubmitProcessUseCase>(), sl<PollJobStatusUseCase>(), sl<AppLogger>()),
   );
 }

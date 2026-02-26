@@ -1,6 +1,6 @@
-import { JobRecord } from '../../domain/entities/job_record.js';
-import { IJobRepository } from '../../domain/repositories/job_repository.interface.js';
-import { LocalStorageDataSource } from '../datasources/local_storage.datasource.js';
+import { JobRecord } from '../../domain/entities/job_record';
+import { IJobRepository } from '../../domain/repositories/job_repository.interface';
+import { LocalStorageDataSource } from '../datasources/local_storage.datasource';
 
 export class JobRepositoryImpl implements IJobRepository {
   constructor(private readonly storage: LocalStorageDataSource) {}

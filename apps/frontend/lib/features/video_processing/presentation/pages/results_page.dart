@@ -9,6 +9,7 @@ import '../../domain/entities/clip_artifact.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../cubits/process_cubit.dart';
 import '../cubits/analyze_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class ResultsPage extends StatelessWidget {
   const ResultsPage({super.key});
@@ -17,40 +18,39 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<ProcessCubit>().state;
     if (state is! ProcessDone) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const AppShellScaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final jobStatus = state.jobStatus;
     final moments = {for (final m in jobStatus.moments) m.id: m};
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Clips'),
-        leading: BackButton(onPressed: () {
+    return AppShellScaffold(
+      title: 'Your Clips',
+      leading: BackButton(
+        onPressed: () {
           context.read<AnalyzeCubit>().reset();
+          context.read<ProcessCubit>().reset();
           context.go('/');
-        }),
-        actions: [
-          IconButton(
-            tooltip: 'Start over',
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<AnalyzeCubit>().reset();
-              context.go('/');
-            },
-          ),
-        ],
+        },
       ),
+      actions: [
+        IconButton(
+          tooltip: 'Start over',
+          icon: const Icon(Icons.refresh),
+          onPressed: () {
+            context.read<AnalyzeCubit>().reset();
+            context.read<ProcessCubit>().reset();
+            context.go('/');
+          },
+        ),
+      ],
       body: jobStatus.clips.isEmpty
           ? const Center(child: Text('No clips were generated.'))
           : LayoutBuilder(
               builder: (context, constraints) {
                 final wide = constraints.maxWidth >= 720;
                 return ListView.separated(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: wide ? 48 : 16,
-                    vertical: 16,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: wide ? 48 : 16, vertical: 16),
                   itemCount: jobStatus.clips.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
@@ -82,7 +82,10 @@ class _ClipCardState extends State<_ClipCard> {
 
   Future<void> _initPlayer() async {
     setState(() => _showPlayer = true);
-    final baseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
+    final baseUrl = const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://localhost:3000',
+    );
     final controller = VideoPlayerController.networkUrl(
       Uri.parse('$baseUrl${widget.clip.downloadUrl}'),
     );
@@ -107,8 +110,11 @@ class _ClipCardState extends State<_ClipCard> {
   }
 
   Future<void> _download() async {
-    final baseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
-    final uri = Uri.parse('$baseUrl${widget.clip.downloadUrl}');
+    final baseUrl = const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://localhost:3000',
+    );
+    final uri = Uri.parse('$baseUrl${widget.clip.downloadUrl}?download=1');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -118,9 +124,9 @@ class _ClipCardState extends State<_ClipCard> {
     final text = widget.moment?.postText ?? '';
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post text copied!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Post text copied!')));
     }
   }
 
@@ -163,17 +169,16 @@ class _ClipCardState extends State<_ClipCard> {
                 if (moment != null) ...[
                   Text(
                     moment.caption,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${moment.startSec.toStringAsFixed(0)}s – ${moment.endSec.toStringAsFixed(0)}s  •  ${(moment.endSec - moment.startSec).toStringAsFixed(0)}s',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
                   // Post text box

@@ -1,308 +1,110 @@
-# planImplementation.md
+# Implementation Guide
 
-## 1. Objective
-Implement an MVP web app that converts a long YouTube video into short funny clips users can download to their devices as files, plus ready-to-post social text, using a manual AI copy/paste workflow.
+> Status: **implemented** — see `apps/backend/` and `apps/frontend/`
 
-## 2. Scope and Constraints
-- Frontend: Flutter Web with Material Design 3.
-- Backend: Express + strongly typed TypeScript (`strict` mode, no `any`).
-- Architecture: clean architecture per feature with 3 layers (`presentation`, `domain`, `data`).
-- No database for MVP; local filesystem only.
-- No tests required in this phase.
+## Quick Start
 
-## 3. Monorepo Layout
-```
-.
-├── apps/
-│   ├── backend/
-│   │   ├── src/
-│   │   │   ├── core/
-│   │   │   │   ├── config/
-│   │   │   │   ├── errors/
-│   │   │   │   └── utils/
-│   │   │   ├── features/
-│   │   │   │   └── video_processing/
-│   │   │   │       ├── presentation/
-│   │   │   │       │   ├── controllers/
-│   │   │   │       │   ├── routes/
-│   │   │   │       │   └── dtos/
-│   │   │   │       ├── domain/
-│   │   │   │       │   ├── entities/
-│   │   │   │       │   ├── repositories/
-│   │   │   │       │   ├── usecases/
-│   │   │   │       │   └── value_objects/
-│   │   │   │       └── data/
-│   │   │   │           ├── datasources/
-│   │   │   │           ├── models/
-│   │   │   │           └── repositories/
-│   │   │   ├── infrastructure/
-│   │   │   │   └── express/
-│   │   │   └── main.ts
-│   │   ├── storage/
-│   │   │   ├── captions/
-│   │   │   ├── videos/
-│   │   │   ├── clips/
-│   │   │   └── jobs/
-│   │   └── package.json
-│   └── frontend/
-│       ├── lib/
-│       │   ├── core/
-│       │   │   ├── di/
-│       │   │   ├── failures/
-│       │   │   ├── theme/
-│       │   │   └── utils/
-│       │   ├── features/
-│       │   │   └── video_processing/
-│       │   │       ├── presentation/
-│       │   │       ├── domain/
-│       │   │       └── data/
-│       │   └── main.dart
-│       └── pubspec.yaml
-└── docs/
-    └── plan.md
+```bash
+# Prerequisites: Node 22+, Flutter 3.27+, yt-dlp, ffmpeg on $PATH
+
+# 1. Backend
+cd apps/backend && npm install && npm run dev
+# → http://localhost:3000
+
+# 2. Frontend (new terminal)
+cd apps/frontend
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-## 4. Backend Detailed Design (Express + Strict TypeScript)
+---
 
-## 4.1 TypeScript baseline
-- `tsconfig`:
-  - `"strict": true`
-  - `"noUncheckedIndexedAccess": true`
-  - `"noImplicitOverride": true`
-  - `"exactOptionalPropertyTypes": true`
-- ESLint rules should fail usage of `any`.
+## What Was Built
 
-## 4.2 Domain entities
-- `VideoMetadata`
-  - `videoId: string`
-  - `title: string`
-  - `durationSec: number`
-  - `sourceUrl: string`
-- `TranscriptSegment`
-  - `startSec: number`
-  - `endSec: number`
-  - `text: string`
-- `FunnyMoment`
-  - `id: string`
-  - `startSec: number`
-  - `endSec: number`
-  - `caption: string`
-  - `postText: string`
-  - `reason: string`
-- `AiMomentsPayload`
-  - `videoTitle: string`
-  - `language: 'uk' | 'uk_18' | 'en' | 'ru'`
-  - `moments: FunnyMoment[]`
+### Phase 0 — Scaffolding
+- `apps/backend/` — Express + TypeScript strict skeleton with clean architecture folders
+- `apps/frontend/` — Flutter web app scaffolded with `flutter create --platforms=web`
+- Material 3 theme (`ColorScheme.fromSeed`, light + dark)
+- GoRouter with 6 named routes
 
-## 4.3 Use cases
-1. `AnalyzeVideoUseCase`
-   - Input: URL + language.
-   - Process: fetch metadata + captions using yt-dlp (without full download).
-   - Output: metadata + normalized transcript for prompt generation.
-2. `ValidateAiPayloadUseCase`
-   - Input: raw JSON pasted by user.
-   - Process: zod validation + business checks (duration, overlap, count).
-   - Output: typed `AiMomentsPayload`.
-3. `ProcessVideoUseCase`
-   - Input: URL + typed moments.
-   - Process: full video download once, cut clips with FFmpeg.
-   - Output: job result with generated clips.
-4. `GetProcessStatusUseCase`
-   - Input: jobId.
-   - Output: `queued|running|failed|done` + progress + artifacts.
+### Phase 1 — Backend Core
+- Domain entities: `VideoMetadata`, `TranscriptSegment`, `FunnyMoment`, `AiMomentsPayload`, `JobRecord`
+- 4 use cases: `AnalyzeVideoUseCase`, `ValidateAiPayloadUseCase`, `ProcessVideoUseCase`, `GetProcessStatusUseCase`
+- Data sources: `YtDlpDataSource` (metadata + captions + download), `FfmpegDataSource` (clip cutting), `LocalStorageDataSource` (job JSON persistence)
+- 3 API endpoints + static media serving with `Accept-Ranges`
+- In-process async job queue with progress tracking
 
-## 4.4 Data sources
-- `YtDlpDataSource`
-  - methods for metadata, caption extraction, and full download.
-- `FfmpegDataSource`
-  - cut clip from input by `startSec` and `durationSec`.
-- `LocalStorageDataSource`
-  - path management, job JSON files, clip files.
+### Phase 2 — Frontend Core
+- 5 domain use cases including `BuildAiPromptUseCase` (pure Dart, no network)
+- Dio datasource with typed error mapping → `Failure` sealed class
+- 5 Cubits with Dart 3 sealed states: `AnalyzeCubit`, `PromptCubit`, `JsonPasteCubit`, `MomentsReviewCubit`, `ProcessCubit`
+- GetIt DI wiring
 
-## 4.5 HTTP endpoints (v1)
-1. `POST /api/v1/videos/analyze`
-   - Request:
-```json
-{
-  "youtubeUrl": "https://www.youtube.com/watch?v=...",
-  "language": "en"
-}
-```
-   - Response:
-```json
-{
-  "video": {
-    "videoId": "abc123",
-    "title": "Sample",
-    "durationSec": 3600,
-    "sourceUrl": "..."
-  },
-  "transcript": [
-    { "startSec": 0, "endSec": 3, "text": "..." }
-  ],
-  "language": "en"
-}
-```
+### Phase 3 — Updated Workflow (YouTube-first)
+**Changed from original spec:** Video download is deferred until the user selects moments to keep.
 
-2. `POST /api/v1/videos/process`
-   - Request:
-```json
-{
-  "youtubeUrl": "https://www.youtube.com/watch?v=...",
-  "aiPayload": {
-    "videoTitle": "Sample",
-    "language": "en",
-    "moments": [
-      {
-        "id": "m1",
-        "startSec": 123,
-        "endSec": 165,
-        "caption": "...",
-        "postText": "...",
-        "reason": "..."
-      }
-    ]
-  }
-}
-```
-   - Response:
-```json
-{
-  "jobId": "job_20260226_001",
-  "status": "queued"
-}
-```
+New flow:
+1. Analyze → transcript only (no download)
+2. Build AI prompt → copy to clipboard
+3. Paste AI JSON → client-side validation (3-10 moments, no overlap, max 120s duration)
+4. **Review page with YouTube iframes** — each moment shown as an embedded player with `start`/`end` timestamp params; user taps to select/deselect
+5. Press "Generate Posts" → only selected moments are sent; backend downloads video + cuts those clips
+6. Results page with Chewie player preview, post-text copy button, download link
 
-3. `GET /api/v1/videos/process/:jobId`
-   - Response:
-```json
-{
-  "jobId": "job_20260226_001",
-  "status": "running",
-  "progress": 65,
-  "clips": [
-    {
-      "momentId": "m1",
-      "startSec": 123,
-      "endSec": 165,
-      "downloadUrl": "/media/clips/job_20260226_001_m1.mp4"
-    }
-  ],
-  "error": null
-}
-```
+---
 
-4. `GET /media/clips/:fileName`
-- Serves generated clip with range support for video preview.
+## Key Files
 
-## 4.6 Job execution model
-- Start with in-process async queue (single worker).
-- Persist job state in `storage/jobs/<jobId>.json`.
-- Update progress by stage:
-  - 10% metadata ready
-  - 30% full download ready
-  - 30-95% clip cutting loop
-  - 100% done
+| File | Purpose |
+|---|---|
+| `apps/backend/src/main.ts` | Server entry point |
+| `apps/backend/src/infrastructure/express/app.ts` | DI wiring, middleware, routing |
+| `apps/backend/src/features/video_processing/domain/usecases/validate_ai_payload.usecase.ts` | Zod + business rules |
+| `apps/backend/src/features/video_processing/domain/usecases/process_video.usecase.ts` | Async job + FFmpeg cutting |
+| `apps/backend/src/features/video_processing/data/datasources/yt_dlp.datasource.ts` | yt-dlp integration |
+| `apps/frontend/lib/main.dart` | Flutter entry, DI init, router |
+| `apps/frontend/lib/core/utils/router.dart` | GoRouter, shared cubit instances |
+| `apps/frontend/lib/features/video_processing/domain/usecases/build_ai_prompt_usecase.dart` | AI prompt builder |
+| `apps/frontend/lib/features/video_processing/presentation/pages/moments_review_page.dart` | YouTube iframe preview + selection |
+| `apps/frontend/lib/features/video_processing/presentation/pages/results_page.dart` | Clip player + download |
 
-## 5. Frontend Detailed Design (Flutter + Material 3)
+---
 
-## 5.1 App flow screens
-1. `AnalyzeInputPage`
-   - URL input
-   - language selector
-   - analyze action
-2. `PromptBuilderPage`
-   - shows generated AI prompt from transcript + schema
-   - copy-to-clipboard CTA
-3. `AiJsonPastePage`
-   - text area for AI JSON
-   - validate JSON action
-   - submit process action
-4. `ProcessingPage`
-   - progress indicator and status polling
-5. `ResultsPage`
-   - list of moments/cards
-   - copy post text button
-   - clip preview player
-   - download clip action
+## Validation Rules
 
-## 5.2 Material 3 requirements
-- `ThemeData(useMaterial3: true)` for light and dark themes.
-- Use `ColorScheme.fromSeed` for consistent brand palette.
-- Use Material components (FilledButton, Card, NavigationBar, SnackBar).
-- Responsive layout:
-  - mobile: single-column flow
-  - tablet/desktop: split panes for form + preview/results
+### Client-side (JSON paste step — enforces AI quality)
+- Moments count: 3-10
+- `endSec > startSec`
+- `endSec - startSec <= 120s`
+- No overlap
 
-## 5.3 Frontend feature internals
-- `presentation`
-  - Cubits:
-    - `AnalyzeCubit`
-    - `PromptCubit`
-    - `ProcessCubit`
-    - `ResultsCubit`
-- `domain`
-  - entities mirroring backend contracts
-  - repository abstractions
-  - use cases for each action
-- `data`
-  - Dio datasource
-  - repository implementations
-  - DTO serialization (`freezed` + `json_serializable`)
+### Backend process endpoint (user-selected moments)
+- Moments count: 1-10 (user may intentionally select fewer than 3)
+- `endSec > startSec`
+- `endSec - startSec <= 120s`
+- No overlap
 
-## 6. Prompt Generation Specification (Frontend)
-Generated prompt must include:
-1. Role instruction (viral comedy content assistant).
-2. Selected language profile behavior.
-3. Full transcript with timestamps.
-4. Mandatory output JSON schema.
-5. Hard constraints:
-   - 3 to 10 moments
-   - no overlap
-   - seconds-based timestamps
-   - post text should be platform-ready and concise
+---
 
-## 7. Error Handling Strategy
-- Backend returns typed error envelope:
-```json
-{
-  "code": "INVALID_AI_PAYLOAD",
-  "message": "Moments overlap",
-  "details": {}
-}
-```
-- Frontend maps backend errors to user-friendly messages.
-- Parsing failures show actionable hints (invalid JSON, missing fields, invalid timestamps).
+## Manual Verification Checklist
 
-## 8. Security and Limits (MVP)
-- Validate URL format and allowed hosts (YouTube only).
-- Sanitize filenames and avoid path traversal.
-- Cap max moments to 10.
-- Cap max clip duration to 120 seconds.
+1. `npm run dev` starts on port 3000 without errors
+2. `POST /api/v1/videos/analyze` with a valid YouTube URL returns `video` + `transcript`
+3. Generated prompt on `PromptBuilderPage` contains transcript and JSON schema
+4. Paste valid AI JSON on `AiJsonPastePage` → advances to `MomentsReviewPage`
+5. YouTube iframes load with correct start/end timestamps
+6. Select a subset of moments, press "Generate Posts"
+7. `ProcessingPage` shows progress increments, transitions to `ResultsPage` at 100%
+8. Each clip previews with Chewie player and downloads correctly
+9. Copy-post-text button copies the right text per clip
+10. Invalid JSON (bad format, overlapping moments) shows error card with clear message
+11. "Start Over" resets all state and returns to step 1
 
-## 9. Implementation Sequence
-1. Bootstrap backend with strict TS + Express app + DI wiring.
-2. Implement analyze endpoint and transcript extraction.
-3. Implement AI payload validation.
-4. Implement process job queue + FFmpeg clipping + media serving.
-5. Bootstrap Flutter app with Material 3 theme and routes.
-6. Implement analyze + prompt builder flow.
-7. Implement AI JSON paste + process trigger flow.
-8. Implement polling + results/preview/download UI.
-9. Manual end-to-end verification with a real video.
+---
 
-## 10. Manual Verification Checklist (No Tests)
-1. Analyze a valid 1-hour YouTube URL.
-2. Confirm transcript data appears in prompt builder.
-3. Paste valid AI JSON and start processing.
-4. Verify status transitions and progress updates.
-5. Verify all generated clips play and download.
-6. Verify copy-post-text button works for each moment.
-7. Verify invalid JSON and overlap errors are handled clearly.
+## Known Constraints (MVP)
 
-## 11. Done Criteria
-- End-to-end flow works locally without external DB.
-- Backend is strict, typed, and Express-based.
-- Frontend is Material 3 and responsive.
-- Feature-first clean architecture is enforced in both FE and BE.
-- Manual verification checklist passes.
+- Single worker: one job at a time; concurrent job support is post-MVP
+- No authentication: intended for local use only
+- Storage not cleaned up: delete `storage/videos/` and `storage/clips/` manually between runs
+- YouTube iframes may be blocked by browser CORS policies on some enterprise networks

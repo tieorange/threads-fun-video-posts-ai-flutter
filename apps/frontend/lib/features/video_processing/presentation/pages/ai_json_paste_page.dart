@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/json_paste_cubit.dart';
 import '../cubits/moments_review_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class AiJsonPastePage extends StatefulWidget {
   const AiJsonPastePage({super.key});
@@ -26,11 +27,9 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paste AI Response'),
-        leading: BackButton(onPressed: () => context.go('/prompt')),
-      ),
+    return AppShellScaffold(
+      title: 'Paste AI Response',
+      leading: BackButton(onPressed: () => context.go('/prompt')),
       body: BlocListener<JsonPasteCubit, JsonPasteState>(
         listener: (context, state) {
           if (state is JsonPasteValid) {

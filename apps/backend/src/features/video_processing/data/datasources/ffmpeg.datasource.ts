@@ -1,5 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg';
-import { AppError } from '../../../../core/errors/app_error.js';
+import { AppError } from '../../../../core/errors/app_error';
+import { logger } from '../../../../core/logging/logger';
 
 export interface IFfmpegDataSource {
   cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void>;
@@ -7,6 +8,12 @@ export interface IFfmpegDataSource {
 
 export class FfmpegDataSource implements IFfmpegDataSource {
   cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void> {
+    const start = Date.now();
+    logger.info('ffmpeg_cut_clip_start', 'Starting ffmpeg cut', {
+      layer: 'data',
+      data: { inputPath, startSec, durationSec, outputPath },
+    });
+
     return new Promise((resolve, reject) => {
       ffmpeg(inputPath)
         .setStartTime(startSec)
@@ -15,8 +22,21 @@ export class FfmpegDataSource implements IFfmpegDataSource {
         .videoCodec('libx264')
         .audioCodec('aac')
         .outputOptions(['-movflags faststart'])
-        .on('end', () => resolve())
+        .on('end', () => {
+          logger.info('ffmpeg_cut_clip_done', 'Clip cut successfully', {
+            layer: 'data',
+            durationMs: Date.now() - start,
+            data: { outputPath },
+          });
+          resolve();
+        })
         .on('error', (err: Error) => {
+          logger.error('ffmpeg_cut_clip_failed', err.message, {
+            layer: 'data',
+            durationMs: Date.now() - start,
+            ...(err.stack ? { stack: err.stack } : {}),
+            data: { inputPath, startSec, durationSec, outputPath },
+          });
           reject(new AppError('CLIP_CUT_FAILED', `FFmpeg error: ${err.message}`, 500));
         })
         .run();

@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/prompt_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class PromptBuilderPage extends StatelessWidget {
   const PromptBuilderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Copy AI Prompt'),
-        leading: BackButton(onPressed: () => context.go('/')),
-      ),
+    return AppShellScaffold(
+      title: 'Copy AI Prompt',
+      leading: BackButton(onPressed: () => context.go('/')),
       body: BlocBuilder<PromptCubit, PromptState>(
         builder: (context, state) {
           final prompt = switch (state) {

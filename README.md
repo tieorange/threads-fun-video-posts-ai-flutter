@@ -1,36 +1,52 @@
-# Funny Threads AI
+# 🎬 Funny Threads AI
 
-Turn a long YouTube video into short, shareable funny clips with ready-to-post social text — using a manual AI copy/paste workflow (no API key required).
+> Turn any long YouTube video into **3–10 short funny clips** with ready-to-post social text — no API key, no subscription, runs entirely on your machine.
 
-## Prerequisites
-
-- Node.js 22+
-- npm
-- Flutter 3.27+ with web support enabled (`flutter config --enable-web`)
-- `yt-dlp` installed and on `$PATH` (`brew install yt-dlp` / `pip install yt-dlp`)
-- `ffmpeg` installed and on `$PATH` (`brew install ffmpeg`)
+The magic: paste a YouTube URL → the app builds an AI prompt from the transcript → you copy-paste it into ChatGPT/Claude/Gemini → paste the JSON back → preview moments as YouTube players → select what you like → download `.mp4` clips.
 
 ---
 
-## Running the Backend
+## ✨ Features
+
+- 🔗 **Paste any YouTube URL** — up to ~1 hour long
+- 🌍 **4 language profiles** — English, Ukrainian, Ukrainian 18+, Russian
+- 🤖 **No AI API key** — you bring your own ChatGPT/Claude/Gemini session
+- 📺 **YouTube preview first** — watch each moment in-app with timestamp iframes before downloading anything
+- ✅ **Select only what you want** — deselect bad moments, keep the gems
+- ✂️ **FFmpeg clip cutting** — lossless-quality `.mp4` files per moment
+- 📋 **One-click post text copy** — caption ready for Threads, TikTok, Instagram
+- 🌗 **Material 3 design** — light + dark theme, responsive for mobile/tablet/desktop
+
+---
+
+## 🧰 Prerequisites
+
+| Tool | Version | Install |
+|---|---|---|
+| Node.js | 22+ | [nodejs.org](https://nodejs.org) |
+| Flutter | 3.27+ | [flutter.dev](https://flutter.dev) |
+| yt-dlp | latest | `brew install yt-dlp` · `pip install yt-dlp` |
+| ffmpeg | any | `brew install ffmpeg` · `apt install ffmpeg` |
+
+Enable Flutter web if not already done:
+```bash
+flutter config --enable-web
+```
+
+---
+
+## 🚀 Running Locally
+
+### 1. Start the backend
 
 ```bash
 cd apps/backend
 npm install
-npm run dev          # starts on http://localhost:3000
+npm run dev
+# ✅ Running on http://localhost:3000
 ```
 
-Environment variables (optional, `.env` or shell exports):
-
-| Variable       | Default                  | Description              |
-|----------------|--------------------------|--------------------------|
-| `PORT`         | `3000`                   | HTTP port                |
-| `STORAGE_PATH` | `./storage`              | Where videos/clips live  |
-| `CORS_ORIGIN`  | `http://localhost:3001`  | Allowed Flutter web origin |
-
----
-
-## Running the Frontend
+### 2. Start the frontend
 
 ```bash
 cd apps/frontend
@@ -39,32 +55,161 @@ flutter run -d chrome \
   --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-For a different backend URL (e.g. LAN access):
+That's it. Both should be running in under a minute.
 
-```bash
-flutter run -d chrome \
-  --dart-define=API_BASE_URL=http://192.168.1.x:3000
+---
+
+## 🗺️ How It Works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. Paste YouTube URL + pick language → Analyze          │
+│     → backend fetches metadata + transcript (no download)│
+├─────────────────────────────────────────────────────────┤
+│  2. Copy the generated AI prompt to clipboard            │
+├─────────────────────────────────────────────────────────┤
+│  3. Paste into ChatGPT / Claude / Gemini                 │
+│     → get a JSON response with funny moments             │
+├─────────────────────────────────────────────────────────┤
+│  4. Paste the JSON back → app validates it               │
+├─────────────────────────────────────────────────────────┤
+│  5. Review moments with YouTube iframes (with timestamps)│
+│     → tap to select / deselect                           │
+├─────────────────────────────────────────────────────────┤
+│  6. Press "Generate Posts"                               │
+│     → backend downloads video ONCE, cuts your clips      │
+├─────────────────────────────────────────────────────────┤
+│  7. Preview → copy post text → download .mp4 🎉          │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## User Workflow
+## 🏗️ Project Structure
 
-1. **Analyze** — Paste a YouTube URL, pick a language, press Analyze.
-2. **Copy Prompt** — Copy the generated AI prompt to clipboard.
-3. **Paste into AI** — Open ChatGPT / Claude / Gemini, paste the prompt, get JSON back.
-4. **Paste JSON** — Paste the AI response into the app and validate.
-5. **Review Moments** — Watch YouTube previews for each moment in-app. Select the ones you want.
-6. **Generate Posts** — Press "Generate Posts". The backend downloads the video once and cuts your selected clips.
-7. **Results** — Preview each clip, copy post text, download the `.mp4` files.
+```
+.
+├── apps/
+│   ├── backend/       Node 22 · Express · TypeScript (strict, no any)
+│   └── frontend/      Flutter Web · Material 3 · flutter_bloc
+└── docs/
+    ├── plan.md              Original project spec
+    ├── planImplementation.md  As-built implementation guide
+    └── architecture.md      Full architecture reference
+```
+
+### Backend — Clean Architecture
+```
+src/
+  core/               errors, config, utils
+  features/
+    video_processing/
+      domain/         entities · repository interfaces · use cases
+      data/           yt-dlp datasource · ffmpeg datasource · local storage
+      presentation/   controllers · routes · zod DTOs
+  infrastructure/     Express app factory · DI wiring
+```
+
+### Frontend — Clean Architecture
+```
+lib/
+  core/               DI (get_it) · failures · theme · router
+  features/
+    video_processing/
+      domain/         entities · repository interfaces · use cases
+      data/           Dio datasource · DTOs · repository impls
+      presentation/   5 cubits · 6 pages
+```
 
 ---
 
-## API Endpoints
+## 🌐 API Reference
 
-| Method | Path                              | Description                     |
-|--------|-----------------------------------|---------------------------------|
-| POST   | `/api/v1/videos/analyze`          | Fetch metadata + transcript     |
-| POST   | `/api/v1/videos/process`          | Start clip-cutting job          |
-| GET    | `/api/v1/videos/process/:jobId`   | Poll job status + clip list     |
-| GET    | `/media/clips/:fileName`          | Stream/download a clip          |
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/videos/analyze` | Fetch metadata + transcript |
+| `POST` | `/api/v1/videos/process` | Start async clip-cutting job |
+| `GET` | `/api/v1/videos/process/:jobId` | Poll job status + progress |
+| `GET` | `/media/clips/:fileName` | Stream or download a clip |
+
+### Job Progress Stages
+```
+0%  → queued
+10% → video info fetched
+30% → full video downloaded
+30–95% → clips being cut (increments per clip)
+100% → done ✅
+```
+
+---
+
+## ⚙️ Environment Variables (Backend)
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | HTTP port |
+| `STORAGE_PATH` | `./storage` | Local storage for videos/clips/jobs |
+| `CORS_ORIGIN` | `http://localhost:3001` | Allowed frontend origin |
+
+---
+
+## 🛡️ Validation Rules
+
+The app enforces these rules at two checkpoints:
+
+**Client-side** (JSON paste — enforces AI output quality):
+- 3–10 moments
+- `endSec > startSec`
+- Max 120s per clip
+- No overlapping moments
+
+**Backend** (process endpoint — user's intentional selection):
+- 1–10 moments (you can select just 1 if you want!)
+- Same timestamp and duration rules
+
+---
+
+## 🔧 Tech Stack
+
+### Backend
+| Package | Purpose |
+|---|---|
+| `express` | HTTP server |
+| `zod` | Runtime schema validation |
+| `yt-dlp-exec` | YouTube metadata + captions + download |
+| `fluent-ffmpeg` | Video clip cutting |
+| `uuid` | Job ID generation |
+
+### Frontend
+| Package | Purpose |
+|---|---|
+| `flutter_bloc` | Cubit state management |
+| `fpdart` | `Either<Failure, T>` error handling |
+| `dio` | HTTP client |
+| `go_router` | Declarative routing |
+| `get_it` | Dependency injection |
+| `video_player` + `chewie` | In-app clip preview |
+| `url_launcher` | Open download URLs |
+| `web` | YouTube iframe embedding |
+
+---
+
+## 📁 Generated Storage Layout
+
+```
+apps/backend/storage/
+  videos/    downloaded full videos (reused per job)
+  clips/     cut .mp4 clips → served at /media/clips/
+  jobs/      JSON job state files
+  captions/  temporary caption files
+```
+
+> 💡 Clean up `storage/videos/` and `storage/clips/` manually between sessions — no automatic cleanup in MVP.
+
+---
+
+## 📖 Docs
+
+- [docs/architecture.md](docs/architecture.md) — Full architecture reference, API contracts, design decisions
+- [docs/planImplementation.md](docs/planImplementation.md) — As-built implementation guide + verification checklist
+- [docs/plan.md](docs/plan.md) — Original project specification

@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/process_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class ProcessingPage extends StatelessWidget {
   const ProcessingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Generating Clips')),
+    return AppShellScaffold(
+      title: 'Generating Clips',
       body: BlocListener<ProcessCubit, ProcessState>(
         listener: (context, state) {
           if (state is ProcessDone) {

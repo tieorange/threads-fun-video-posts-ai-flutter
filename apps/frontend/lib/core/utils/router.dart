@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/injection.dart';
+import '../logging/log_entry.dart';
+import '../logging/logger.dart';
 import '../../features/video_processing/presentation/cubits/analyze_cubit.dart';
 import '../../features/video_processing/presentation/cubits/prompt_cubit.dart';
 import '../../features/video_processing/presentation/cubits/json_paste_cubit.dart';
@@ -13,6 +15,12 @@ import '../../features/video_processing/presentation/pages/ai_json_paste_page.da
 import '../../features/video_processing/presentation/pages/moments_review_page.dart';
 import '../../features/video_processing/presentation/pages/processing_page.dart';
 import '../../features/video_processing/presentation/pages/results_page.dart';
+
+void _logRoute(String path) {
+  final log = sl<AppLogger>();
+  log.setRoute(path);
+  log.info('route_enter', 'Navigated to $path', layer: AppLayer.presentation);
+}
 
 // Shared cubit instances that persist across route transitions
 late final AnalyzeCubit _analyzeCubit;
@@ -30,62 +38,80 @@ void initCubits() {
 }
 
 // Extra data passed via GoRouter for the review page
-String _reviewYoutubeUrl = '';
-Map<String, dynamic> _reviewAiPayload = {};
+// Data is extracted from state.extra or cubit states during build.
 
 Widget _withProviders(Widget child) => MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: _analyzeCubit),
-        BlocProvider.value(value: _promptCubit),
-        BlocProvider.value(value: _jsonPasteCubit),
-        BlocProvider.value(value: _reviewCubit),
-        BlocProvider.value(value: _processCubit),
-      ],
-      child: child,
-    );
+  providers: [
+    BlocProvider.value(value: _analyzeCubit),
+    BlocProvider.value(value: _promptCubit),
+    BlocProvider.value(value: _jsonPasteCubit),
+    BlocProvider.value(value: _reviewCubit),
+    BlocProvider.value(value: _processCubit),
+  ],
+  child: child,
+);
 
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      builder: (_, __) => _withProviders(const AnalyzeInputPage()),
+      builder: (_, __) {
+        _logRoute('/');
+        return _withProviders(const AnalyzeInputPage());
+      },
     ),
     GoRoute(
       path: '/prompt',
-      builder: (_, __) => _withProviders(const PromptBuilderPage()),
+      builder: (_, __) {
+        _logRoute('/prompt');
+        return _withProviders(const PromptBuilderPage());
+      },
     ),
     GoRoute(
       path: '/paste',
-      builder: (_, __) => _withProviders(const AiJsonPastePage()),
+      builder: (_, __) {
+        _logRoute('/paste');
+        return _withProviders(const AiJsonPastePage());
+      },
     ),
     GoRoute(
       path: '/review',
       builder: (context, state) {
+        _logRoute('/review');
         final extra = state.extra;
-        if (extra is Map<String, dynamic>) {
-          _reviewAiPayload = extra;
-        }
+        final aiPayload = extra is Map<String, dynamic> ? extra : null;
+
         // YouTube URL comes from the analyze cubit state
         final analyzeState = _analyzeCubit.state;
-        if (analyzeState is AnalyzeSuccess) {
-          _reviewYoutubeUrl = analyzeState.result.video.sourceUrl;
+        final youtubeUrl = analyzeState is AnalyzeSuccess
+            ? analyzeState.result.video.sourceUrl
+            : null;
+
+        if (aiPayload == null || youtubeUrl == null) {
+          // Guard: if data is missing (e.g. direct nav or stale), go back to start
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.go('/');
+          });
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        return _withProviders(
-          MomentsReviewPage(
-            youtubeUrl: _reviewYoutubeUrl,
-            aiPayload: _reviewAiPayload,
-          ),
-        );
+
+        return _withProviders(MomentsReviewPage(youtubeUrl: youtubeUrl, aiPayload: aiPayload));
       },
     ),
     GoRoute(
       path: '/processing',
-      builder: (_, __) => _withProviders(const ProcessingPage()),
+      builder: (_, __) {
+        _logRoute('/processing');
+        return _withProviders(const ProcessingPage());
+      },
     ),
     GoRoute(
       path: '/results',
-      builder: (_, __) => _withProviders(const ResultsPage()),
+      builder: (_, __) {
+        _logRoute('/results');
+        return _withProviders(const ResultsPage());
+      },
     ),
   ],
 );

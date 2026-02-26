@@ -13,7 +13,7 @@ class BuildAiPromptUseCase {
     final transcriptText = _formatTranscript(transcript);
 
     return '''
-You are a viral comedy content assistant. Your task is to analyze the following YouTube video transcript and identify ${{3}}-10 of the funniest, most shareable moments.
+You are a viral comedy content assistant. Your task is to analyze the following YouTube video transcript and identify 3-10 of the funniest, most shareable moments.
 
 $langInstruction
 

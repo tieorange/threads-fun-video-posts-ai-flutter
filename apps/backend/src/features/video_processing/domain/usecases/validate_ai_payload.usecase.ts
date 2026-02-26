@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { AiMomentsPayload } from '../entities/ai_moments_payload.js';
-import { AppError } from '../../../../core/errors/app_error.js';
+import { AiMomentsPayload } from '../entities/ai_moments_payload';
+import { AppError } from '../../../../core/errors/app_error';
+import { logger } from '../../../../core/logging/logger';
 
 const FunnyMomentSchema = z.object({
   id: z.string().min(1),
@@ -23,6 +24,10 @@ export class ValidateAiPayloadUseCase {
   execute(raw: unknown): AiMomentsPayload {
     const parseResult = AiMomentsPayloadSchema.safeParse(raw);
     if (!parseResult.success) {
+      logger.warn('validate_payload_schema_failed', 'AI payload schema validation failed', {
+        layer: 'domain',
+        data: { issues: parseResult.error.issues },
+      });
       throw new AppError(
         'INVALID_AI_PAYLOAD',
         'AI payload validation failed.',
@@ -32,6 +37,10 @@ export class ValidateAiPayloadUseCase {
     }
 
     const payload = parseResult.data;
+    logger.info('validate_payload_schema_ok', 'Schema valid, checking business rules', {
+      layer: 'domain',
+      data: { momentCount: payload.moments.length, videoTitle: payload.videoTitle },
+    });
 
     for (const moment of payload.moments) {
       if (moment.endSec <= moment.startSec) {
@@ -63,6 +72,10 @@ export class ValidateAiPayloadUseCase {
       }
     }
 
+    logger.info('validate_payload_ok', 'Payload fully validated', {
+      layer: 'domain',
+      data: { momentCount: payload.moments.length },
+    });
     return payload as AiMomentsPayload;
   }
 }

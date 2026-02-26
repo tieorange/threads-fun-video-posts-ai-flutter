@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../cubits/moments_review_cubit.dart';
 import '../cubits/process_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class MomentsReviewPage extends StatefulWidget {
   const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
@@ -86,25 +87,23 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
   Widget build(BuildContext context) {
     final videoId = _videoId(widget.youtubeUrl);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Review Moments'),
-        leading: BackButton(onPressed: () => context.go('/paste')),
-        actions: [
-          BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
-            builder: (context, state) => TextButton(
-              onPressed: state.selected.length == state.moments.length
-                  ? context.read<MomentsReviewCubit>().clearAll
-                  : context.read<MomentsReviewCubit>().selectAll,
-              child: Text(
-                state.selected.length == state.moments.length
-                    ? 'Deselect All'
-                    : 'Select All',
-              ),
+    return AppShellScaffold(
+      title: 'Review Moments',
+      leading: BackButton(onPressed: () => context.go('/paste')),
+      actions: [
+        BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
+          builder: (context, state) => TextButton(
+            onPressed: state.selected.length == state.moments.length
+                ? context.read<MomentsReviewCubit>().clearAll
+                : context.read<MomentsReviewCubit>().selectAll,
+            child: Text(
+              state.selected.length == state.moments.length
+                  ? 'Deselect All'
+                  : 'Select All',
             ),
           ),
-        ],
-      ),
+        ),
+      ],
       body: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
         builder: (context, state) {
           return Column(

@@ -3,6 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/analyze_cubit.dart';
 import '../cubits/prompt_cubit.dart';
+import '../cubits/json_paste_cubit.dart';
+import '../cubits/moments_review_cubit.dart';
+import '../cubits/process_cubit.dart';
+import '../../../../../core/widgets/app_shell_scaffold.dart';
 
 class AnalyzeInputPage extends StatefulWidget {
   const AnalyzeInputPage({super.key});
@@ -23,6 +27,19 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Reset all states when entering the start page to prevent stale data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AnalyzeCubit>().reset();
+      context.read<PromptCubit>().reset();
+      context.read<JsonPasteCubit>().reset();
+      context.read<MomentsReviewCubit>().reset();
+      context.read<ProcessCubit>().reset();
+    });
+  }
+
+  @override
   void dispose() {
     _urlController.dispose();
     super.dispose();
@@ -36,8 +53,8 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Funny Threads AI')),
+    return AppShellScaffold(
+      title: 'Funny Threads AI',
       body: BlocListener<AnalyzeCubit, AnalyzeState>(
         listener: (context, state) {
           if (state is AnalyzeSuccess) {

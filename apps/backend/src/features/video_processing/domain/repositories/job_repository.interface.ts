@@ -1,4 +1,4 @@
-import { JobRecord } from '../entities/job_record.js';
+import { JobRecord } from '../entities/job_record';
 
 export interface IJobRepository {
   save(job: JobRecord): Promise<void>;

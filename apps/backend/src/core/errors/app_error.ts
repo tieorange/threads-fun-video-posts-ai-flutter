@@ -9,6 +9,7 @@ export type ErrorCode =
   | 'DOWNLOAD_FAILED'
   | 'CLIP_CUT_FAILED'
   | 'JOB_NOT_FOUND'
+  | 'JOB_LOAD_FAILED'
   | 'INTERNAL_ERROR';
 
 export class AppError extends Error {
