@@ -26,8 +26,8 @@ class ValidateAndParseJsonUseCase {
         errors.add('Missing "moments" array');
       } else if (moments is! List) {
         errors.add('"moments" must be an array');
-      } else if (moments.length < 3 || moments.length > 10) {
-        errors.add('"moments" must contain between 3 and 10 items (got ${moments.length})');
+      } else if (moments.length > 10) {
+        errors.add('"moments" must contain at most 10 items (got ${moments.length})');
       } else {
         for (var i = 0; i < moments.length; i++) {
           final m = moments[i];

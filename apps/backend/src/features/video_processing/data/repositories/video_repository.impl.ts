@@ -5,7 +5,7 @@ import { IVideoRepository } from '../../domain/repositories/video_repository.int
 import { YtDlpDataSource } from '../datasources/yt_dlp.datasource';
 
 export class VideoRepositoryImpl implements IVideoRepository {
-  constructor(private readonly ytDlp: YtDlpDataSource) {}
+  constructor(private readonly ytDlp: YtDlpDataSource) { }
 
   getMetadata(url: string): Promise<VideoMetadata> {
     return this.ytDlp.getMetadata(url);
@@ -15,7 +15,7 @@ export class VideoRepositoryImpl implements IVideoRepository {
     return this.ytDlp.getCaptions(url, language);
   }
 
-  downloadVideo(url: string, videoId: string): Promise<string> {
-    return this.ytDlp.downloadVideo(url, videoId);
+  downloadVideo(url: string, videoId: string, onProgress?: (percent: number) => void): Promise<string> {
+    return this.ytDlp.downloadVideo(url, videoId, onProgress);
   }
 }

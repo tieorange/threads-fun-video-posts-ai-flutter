@@ -1,3 +1,4 @@
+import spawn from 'cross-spawn';
 import ytDlp from 'yt-dlp-exec';
 import path from 'path';
 import { Language } from '../../domain/entities/ai_moments_payload';
@@ -18,6 +19,19 @@ interface SubtitleFormat {
   url: string;
   name?: string;
 }
+
+interface YtDlpSubtitlesInfo {
+  automatic_captions?: Record<string, SubtitleFormat[]>;
+  subtitles?: Record<string, SubtitleFormat[]>;
+}
+
+interface CaptionCandidate {
+  langCode: string;
+  source: 'subtitles' | 'automatic_captions';
+  format: SubtitleFormat;
+}
+
+const SUPPORTED_CAPTION_EXT_PRIORITY = ['json3', 'vtt'];
 
 const LANG_MAP: Record<Language, string[]> = {
   uk: ['uk', 'ukr'],
@@ -76,55 +90,52 @@ export class YtDlpDataSource {
         skipDownload: true,
         writeSub: true,
         writeAutoSub: true,
-        subLang: langCodes.join(','),
-        subFormat: 'json3',
-      }) as { automatic_captions?: Record<string, SubtitleFormat[]>; subtitles?: Record<string, SubtitleFormat[]> };
+        subLang: 'all',
+      }) as YtDlpSubtitlesInfo;
 
-      const captions = info.subtitles ?? info.automatic_captions ?? {};
-      const formats = this.findBestCaptions(captions, langCodes);
-      const json3Format = formats.find((f) => f.ext === 'json3');
+      const manualCaptions = info.subtitles ?? {};
+      const automaticCaptions = info.automatic_captions ?? {};
+      const candidate = this.selectCaptionCandidate(
+        manualCaptions,
+        automaticCaptions,
+        langCodes,
+      );
 
-      if (!json3Format) {
-        logger.warn('yt_dlp_get_captions_empty', 'No json3 captions found', {
+      if (!candidate) {
+        logger.warn('yt_dlp_get_captions_empty', 'No supported caption tracks found', {
           layer: 'data',
           durationMs: Date.now() - start,
-          data: { url, language, langCodes },
+          data: {
+            url,
+            language,
+            langCodes,
+            availableSubtitleLangs: Object.keys(manualCaptions),
+            availableAutoCaptionLangs: Object.keys(automaticCaptions),
+          },
         });
         return [];
       }
 
-      const response = await fetch(json3Format.url);
+      const response = await fetch(candidate.format.url);
       if (!response.ok) {
-        throw new Error(`Failed to download json3 subtitles: ${response.statusText}`);
+        throw new Error(`Failed to download subtitles: ${response.status} ${response.statusText}`);
       }
 
-      const subtitleData = await response.json() as {
-        events?: Array<{
-          tStartMs?: number;
-          dDurationMs?: number;
-          segs?: Array<{ utf8?: string }>;
-        }>;
-      };
-
-      const segments: TranscriptSegment[] = [];
-      for (const event of subtitleData.events || []) {
-        if (!event.segs) continue;
-        const text = event.segs.map((s) => s.utf8 || '').join('').trim();
-        if (!text || text === '\\n') continue;
-
-        const startSec = (event.tStartMs || 0) / 1000;
-        const durationSec = (event.dDurationMs || 0) / 1000;
-        segments.push({
-          startSec,
-          endSec: startSec + durationSec,
-          text,
-        });
-      }
+      const subtitleBody = await response.text();
+      const ext = candidate.format.ext.toLowerCase();
+      const segments = ext === 'json3'
+        ? this.parseJson3Captions(subtitleBody)
+        : this.parseVttCaptions(subtitleBody);
 
       logger.info('yt_dlp_get_captions_done', 'Captions fetched', {
         layer: 'data',
         durationMs: Date.now() - start,
-        data: { segmentCount: segments.length },
+        data: {
+          segmentCount: segments.length,
+          selectedLangCode: candidate.langCode,
+          selectedSource: candidate.source,
+          selectedExt: candidate.format.ext,
+        },
       });
 
       return segments;
@@ -140,26 +151,61 @@ export class YtDlpDataSource {
     }
   }
 
-  async downloadVideo(url: string, jobId: string): Promise<string> {
+  async downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void): Promise<string> {
     const outputPath = path.join(this.storagePath, 'videos', `${jobId}.%(ext)s`);
     const start = Date.now();
-    logger.info('yt_dlp_download_start', 'Downloading video', { layer: 'data', jobId, data: { url } });
+    logger.info('yt_dlp_download_start', 'Downloading video with progress tracking', { layer: 'data', jobId, data: { url } });
+
     try {
-      await ytDlp(url, {
-        output: outputPath,
-        format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        mergeOutputFormat: 'mp4',
-        noWarnings: true,
-        noCheckCertificate: true,
+      return await new Promise<string>((resolve, reject) => {
+        const args = [
+          url,
+          '--output', outputPath,
+          '--format', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+          '--merge-output-format', 'mp4',
+          '--no-warnings',
+          '--no-check-certificate',
+          '--newline',
+        ];
+
+        const child = spawn('yt-dlp', args);
+
+        child.stdout?.on('data', (data: Buffer) => {
+          const line = data.toString().trim();
+          // Example: [download]  10.0% of 100.00MiB at 10.00MiB/s ETA 00:09
+          const match = line.match(/\[download\]\s+(\d+\.\d+)%/);
+          if (match && match[1]) {
+            const percent = parseFloat(match[1]);
+            onProgress?.(percent);
+          }
+        });
+
+        child.stderr?.on('data', (data: Buffer) => {
+          const line = data.toString().trim();
+          if (line && !line.includes('WARNING')) {
+            logger.warn('yt_dlp_download_stderr', line, { layer: 'data', jobId });
+          }
+        });
+
+        child.on('close', (code: number | null) => {
+          if (code === 0) {
+            const finalPath = path.join(this.storagePath, 'videos', `${jobId}.mp4`);
+            logger.info('yt_dlp_download_done', 'Video downloaded successfully', {
+              layer: 'data',
+              jobId,
+              durationMs: Date.now() - start,
+              data: { finalPath },
+            });
+            resolve(finalPath);
+          } else {
+            reject(new AppError('DOWNLOAD_FAILED', `yt-dlp exited with code ${code}`, 502));
+          }
+        });
+
+        child.on('error', (err: Error) => {
+          reject(new AppError('DOWNLOAD_FAILED', `Failed to start yt-dlp: ${err.message}`, 502));
+        });
       });
-      const finalPath = path.join(this.storagePath, 'videos', `${jobId}.mp4`);
-      logger.info('yt_dlp_download_done', 'Video downloaded', {
-        layer: 'data',
-        jobId,
-        durationMs: Date.now() - start,
-        data: { finalPath },
-      });
-      return finalPath;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       logger.error('yt_dlp_download_failed', msg, {
@@ -169,20 +215,175 @@ export class YtDlpDataSource {
         ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
         data: { url },
       });
-      throw new AppError('DOWNLOAD_FAILED', `Failed to download video: ${msg}`, 502);
+      throw err instanceof AppError ? err : new AppError('DOWNLOAD_FAILED', `Failed to download video: ${msg}`, 502);
     }
   }
 
-  private findBestCaptions(
+  private selectCaptionCandidate(
+    subtitles: Record<string, SubtitleFormat[]>,
+    automaticCaptions: Record<string, SubtitleFormat[]>,
+    preferredLangCodes: string[],
+  ): CaptionCandidate | null {
+    const preferredManual = this.pickCandidateByLangCodes(
+      subtitles,
+      preferredLangCodes,
+      'subtitles',
+    );
+    if (preferredManual) return preferredManual;
+
+    const preferredAuto = this.pickCandidateByLangCodes(
+      automaticCaptions,
+      preferredLangCodes,
+      'automatic_captions',
+    );
+    if (preferredAuto) return preferredAuto;
+
+    const anyManual = this.pickAnyCandidate(subtitles, 'subtitles');
+    if (anyManual) return anyManual;
+
+    return this.pickAnyCandidate(automaticCaptions, 'automatic_captions');
+  }
+
+  private pickCandidateByLangCodes(
     captions: Record<string, SubtitleFormat[]>,
     langCodes: string[],
-  ): SubtitleFormat[] {
+    source: 'subtitles' | 'automatic_captions',
+  ): CaptionCandidate | null {
     for (const code of langCodes) {
       const formats = captions[code];
-      if (formats && formats.length > 0) {
-        return formats;
+      const format = this.pickSupportedFormat(formats);
+      if (format) {
+        return { langCode: code, source, format };
       }
     }
-    return [];
+    return null;
+  }
+
+  private pickAnyCandidate(
+    captions: Record<string, SubtitleFormat[]>,
+    source: 'subtitles' | 'automatic_captions',
+  ): CaptionCandidate | null {
+    for (const [langCode, formats] of Object.entries(captions)) {
+      const format = this.pickSupportedFormat(formats);
+      if (format) {
+        return { langCode, source, format };
+      }
+    }
+    return null;
+  }
+
+  private pickSupportedFormat(formats?: SubtitleFormat[]): SubtitleFormat | null {
+    if (!formats || formats.length === 0) return null;
+
+    for (const ext of SUPPORTED_CAPTION_EXT_PRIORITY) {
+      const match = formats.find((f) => f.ext.toLowerCase() === ext);
+      if (match) return match;
+    }
+    return null;
+  }
+
+  private parseJson3Captions(rawJson: string): TranscriptSegment[] {
+    const subtitleData = JSON.parse(rawJson) as {
+      events?: Array<{
+        tStartMs?: number;
+        dDurationMs?: number;
+        segs?: Array<{ utf8?: string }>;
+      }>;
+    };
+
+    const segments: TranscriptSegment[] = [];
+    for (const event of subtitleData.events || []) {
+      if (!event.segs) continue;
+
+      const text = this.normalizeCaptionText(
+        event.segs.map((s) => s.utf8 || '').join(''),
+      );
+      if (!text) continue;
+
+      const startSec = (event.tStartMs || 0) / 1000;
+      const durationSec = (event.dDurationMs || 0) / 1000;
+      const endSec = durationSec > 0 ? startSec + durationSec : startSec + 2;
+      segments.push({
+        startSec,
+        endSec,
+        text,
+      });
+    }
+
+    return segments;
+  }
+
+  private parseVttCaptions(rawVtt: string): TranscriptSegment[] {
+    const blocks = rawVtt.replace(/\r/g, '').split(/\n{2,}/);
+    const segments: TranscriptSegment[] = [];
+
+    for (const block of blocks) {
+      const lines = block
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      if (lines.length === 0) continue;
+      const firstLine = lines[0];
+      if (!firstLine) continue;
+      if (firstLine === 'WEBVTT' || firstLine.startsWith('NOTE')) continue;
+
+      const timelineIndex = lines.findIndex((line) => line.includes('-->'));
+      if (timelineIndex < 0) continue;
+      const timelineLine = lines[timelineIndex];
+      if (!timelineLine) continue;
+
+      const [rawStart, rawEndAndMeta] = timelineLine.split('-->');
+      if (!rawStart || !rawEndAndMeta) continue;
+
+      const startSec = this.parseVttTimestamp(rawStart.trim());
+      const endToken = rawEndAndMeta.trim().split(' ')[0] ?? '';
+      if (!endToken) continue;
+      const parsedEndSec = this.parseVttTimestamp(endToken);
+      if (startSec == null || parsedEndSec == null) continue;
+
+      const captionLines = lines.slice(timelineIndex + 1);
+      const text = this.normalizeCaptionText(
+        captionLines.join(' ').replace(/<[^>]*>/g, ''),
+      );
+      if (!text) continue;
+
+      const endSec = parsedEndSec > startSec ? parsedEndSec : startSec + 2;
+      segments.push({
+        startSec,
+        endSec,
+        text,
+      });
+    }
+
+    return segments;
+  }
+
+  private parseVttTimestamp(value: string): number | null {
+    const normalized = value.replace(',', '.');
+    const parts = normalized.split(':');
+    const numbers = parts.map((part) => Number(part));
+    if (numbers.some((n) => Number.isNaN(n))) return null;
+
+    if (numbers.length === 3) {
+      const hours = numbers[0];
+      const minutes = numbers[1];
+      const seconds = numbers[2];
+      if (hours == null || minutes == null || seconds == null) return null;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+    if (numbers.length === 2) {
+      const minutes = numbers[0];
+      const seconds = numbers[1];
+      if (minutes == null || seconds == null) return null;
+      return minutes * 60 + seconds;
+    }
+    if (numbers.length === 1) {
+      return numbers[0] ?? null;
+    }
+    return null;
+  }
+
+  private normalizeCaptionText(value: string): string {
+    return value.replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }

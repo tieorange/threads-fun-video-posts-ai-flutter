@@ -20,10 +20,7 @@ class ProcessingPage extends StatelessWidget {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: Theme.of(context).colorScheme.error,
-                action: SnackBarAction(
-                  label: 'Back',
-                  onPressed: () => context.go('/review'),
-                ),
+                action: SnackBarAction(label: 'Back', onPressed: () => context.go('/review')),
               ),
             );
           }
@@ -70,8 +67,8 @@ class ProcessingPage extends StatelessWidget {
                         'Downloading and cutting your selected moments.\nThis may take a few minutes depending on video length.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -86,7 +83,7 @@ class ProcessingPage extends StatelessWidget {
 
   String _progressLabel(int progress) {
     if (progress <= 10) return 'Fetching video info…';
-    if (progress <= 30) return 'Downloading video…';
+    if (progress <= 50) return 'Downloading video…';
     if (progress < 100) return 'Cutting clips…';
     return 'Done!';
   }

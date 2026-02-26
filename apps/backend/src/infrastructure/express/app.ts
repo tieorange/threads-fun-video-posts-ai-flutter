@@ -12,6 +12,7 @@ import { AnalyzeVideoUseCase } from '../../features/video_processing/domain/usec
 import { ValidateAiPayloadUseCase } from '../../features/video_processing/domain/usecases/validate_ai_payload.usecase';
 import { ProcessVideoUseCase } from '../../features/video_processing/domain/usecases/process_video.usecase';
 import { GetProcessStatusUseCase } from '../../features/video_processing/domain/usecases/get_process_status.usecase';
+import { RecoverStaleJobsUseCase } from '../../features/video_processing/domain/usecases/recover_stale_jobs.usecase';
 import { VideoRepositoryImpl } from '../../features/video_processing/data/repositories/video_repository.impl';
 import { JobRepositoryImpl } from '../../features/video_processing/data/repositories/job_repository.impl';
 import { YtDlpDataSource } from '../../features/video_processing/data/datasources/yt_dlp.datasource';
@@ -52,6 +53,8 @@ export async function createApp(storagePath: string): Promise<Application> {
 
   const analyzeUseCase = new AnalyzeVideoUseCase(videoRepo);
   const validateUseCase = new ValidateAiPayloadUseCase();
+  const recoverStaleJobsUseCase = new RecoverStaleJobsUseCase(jobRepo);
+  await recoverStaleJobsUseCase.execute();
   const processUseCase = new ProcessVideoUseCase(
     videoRepo,
     jobRepo,

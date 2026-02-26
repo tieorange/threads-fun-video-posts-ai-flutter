@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 const YOUTUBE_URL_REGEX = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
+const MIN_MOMENTS = 3;
+const MAX_MOMENTS = 10;
 
 const FunnyMomentSchema = z.object({
   id: z.string().min(1),
@@ -14,7 +16,7 @@ const FunnyMomentSchema = z.object({
 const AiPayloadSchema = z.object({
   videoTitle: z.string().min(1),
   language: z.enum(['uk', 'uk_18', 'en', 'ru']),
-  moments: z.array(FunnyMomentSchema).min(3).max(10),
+  moments: z.array(FunnyMomentSchema).min(MIN_MOMENTS).max(MAX_MOMENTS),
 });
 
 export const ProcessRequestSchema = z.object({

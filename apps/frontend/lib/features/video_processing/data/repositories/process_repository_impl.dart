@@ -46,6 +46,17 @@ class ProcessRepositoryImpl implements IProcessRepository {
     if (data is Map<String, dynamic>) {
       final code = data['code'] as String?;
       final message = data['message'] as String? ?? 'Server error';
+      final details = data['details'];
+      if (details is Map<String, dynamic>) {
+        final issues = details['issues'];
+        if (issues is List && issues.isNotEmpty && issues.first is Map<String, dynamic>) {
+          final firstIssue = issues.first as Map<String, dynamic>;
+          final path = firstIssue['path'];
+          final issueMessage = firstIssue['message'];
+          final enrichedMessage = '$message (${path is List ? path.join('.') : 'payload'}: $issueMessage)';
+          return ServerFailure(enrichedMessage, code: code);
+        }
+      }
       return ServerFailure(message, code: code);
     }
     if (e.type == DioExceptionType.connectionTimeout ||

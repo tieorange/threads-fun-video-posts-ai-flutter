@@ -13,6 +13,10 @@ export class JobRepositoryImpl implements IJobRepository {
     return this.storage.loadJob(jobId);
   }
 
+  findAll(): Promise<JobRecord[]> {
+    return this.storage.loadAllJobs();
+  }
+
   update(job: JobRecord): Promise<void> {
     return this.storage.saveJob(job);
   }

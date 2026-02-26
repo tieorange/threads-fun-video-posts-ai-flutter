@@ -8,14 +8,22 @@ class BuildAiPromptUseCase {
     final lang = result.language;
     final video = result.video;
     final transcript = result.transcript;
+    final hasTranscript = transcript.isNotEmpty;
 
     final langInstruction = _languageInstruction(lang);
+    final audienceInstruction = _audienceInstruction();
     final transcriptText = _formatTranscript(transcript);
+    final availabilityInstruction = _availabilityInstruction(hasTranscript);
+    final momentCountConstraint = hasTranscript
+        ? '- Return between 3 and 10 moments.'
+        : '- Return exactly 0 moments (an empty "moments" array).';
 
     return '''
-You are a viral comedy content assistant. Your task is to analyze the following YouTube video transcript and identify 3-10 of the funniest, most shareable moments.
+You are a viral comedy content assistant. Your task is to analyze the provided YouTube transcript and identify the funniest, most shareable moments.
 
 $langInstruction
+$audienceInstruction
+$availabilityInstruction
 
 ## Video Info
 Title: ${video.title}
@@ -44,12 +52,16 @@ You MUST respond with ONLY valid JSON matching this exact schema — no markdown
 }
 
 ## Hard Constraints
-- Return between 3 and 10 moments.
+$momentCountConstraint
 - Timestamps must be in seconds (numbers, not strings).
 - endSec MUST be greater than startSec.
+- Prefer clips between 20 and 70 seconds when possible.
 - Each clip duration (endSec - startSec) must NOT exceed 120 seconds.
 - Moments must NOT overlap (no two moments share the same time range).
+- Sort moments by startSec ascending.
 - postText should be concise and platform-ready (no hashtag spam).
+- Ignore garbled ASR/noisy transcript fragments; select moments with clear setup and punchline.
+- Avoid generic captions/postText; use specific, sharp, internet-native phrasing.
 ''';
   }
 
@@ -68,11 +80,35 @@ You MUST respond with ONLY valid JSON matching this exact schema — no markdown
     }
   }
 
+  String _audienceInstruction() {
+    return '''
+## Audience & Tone
+Target audience: women 18-35 in Ukraine.
+Style: witty, modern, playful, and confident.
+Keep it cool and meme-aware, not generic or cringe.
+Avoid stale punchlines, forced slang, and "boomer" humor.
+''';
+  }
+
   String _formatTranscript(List<TranscriptSegment> segments) {
-    if (segments.isEmpty) return '(No transcript available — analyze the video content directly.)';
+    if (segments.isEmpty) return '(No transcript available for the selected language.)';
     return segments
         .map((s) => '[${s.startSec.toStringAsFixed(1)}s - ${s.endSec.toStringAsFixed(1)}s] ${s.text}')
         .join('\n');
+  }
+
+  String _availabilityInstruction(bool hasTranscript) {
+    if (hasTranscript) {
+      return '''
+Use only the transcript text below.
+Do NOT invent details and do NOT claim you watched/listened to the video directly.
+''';
+    }
+    return '''
+Transcript is unavailable.
+Do NOT invent moments and do NOT analyze unseen video/audio content.
+Return a valid JSON object with "moments": [].
+''';
   }
 
   String _formatDuration(double seconds) {

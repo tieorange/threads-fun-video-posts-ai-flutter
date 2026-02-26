@@ -79,7 +79,7 @@ class ProcessCubit extends Cubit<ProcessState> {
             case JobStatusType.running:
               _log.debug(
                 'process_poll_running',
-                'Job running',
+                'Job running (${status.progress}%)',
                 layer: AppLayer.presentation,
                 jobId: jobId,
                 data: {'progress': status.progress},

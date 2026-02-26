@@ -6,6 +6,7 @@ import { IJobRepository } from '../repositories/job_repository.interface';
 import { IVideoRepository } from '../repositories/video_repository.interface';
 import { IFfmpegDataSource } from '../../data/datasources/ffmpeg.datasource';
 import { logger } from '../../../../core/logging/logger';
+import { config } from '../../../../core/config/env';
 
 export class ProcessVideoUseCase {
   constructor(
@@ -13,7 +14,7 @@ export class ProcessVideoUseCase {
     private readonly jobRepository: IJobRepository,
     private readonly ffmpegDataSource: IFfmpegDataSource,
     private readonly clipsStoragePath: string,
-  ) {}
+  ) { }
 
   async execute(youtubeUrl: string, payload: AiMomentsPayload): Promise<string> {
     const jobId = `job_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}_${uuidv4().slice(0, 8)}`;
@@ -56,8 +57,18 @@ export class ProcessVideoUseCase {
       logger.info('job_running', 'Job started, downloading video', { layer: 'domain', jobId });
 
       const dlStart = Date.now();
-      const videoPath = await this.videoRepository.downloadVideo(job.youtubeUrl, jobId);
-      await this.updateJob(job, { progress: 30 });
+      const videoPath = await this.withTimeout(
+        this.videoRepository.downloadVideo(job.youtubeUrl, jobId, (percent) => {
+          const downloadProgress = 10 + Math.round((percent / 100) * 40);
+          this.updateJob(job, { progress: downloadProgress }).catch((e: unknown) => {
+            logger.warn('job_progress_update_failed', String(e), { layer: 'domain', jobId });
+          });
+        }),
+        config.processDownloadTimeoutMs,
+        'DOWNLOAD_TIMEOUT',
+        `Video download timed out after ${config.processDownloadTimeoutMs}ms`,
+      );
+      await this.updateJob(job, { progress: 50 });
       logger.info('job_download_done', 'Video downloaded', {
         layer: 'domain',
         jobId,
@@ -83,7 +94,12 @@ export class ProcessVideoUseCase {
         });
 
         const clipStart = Date.now();
-        await this.ffmpegDataSource.cutClip(videoPath, moment.startSec, durationSec, outputPath);
+        await this.withTimeout(
+          this.ffmpegDataSource.cutClip(videoPath, moment.startSec, durationSec, outputPath),
+          config.processClipCutTimeoutMs,
+          'CLIP_TIMEOUT',
+          `Clip cut timed out after ${config.processClipCutTimeoutMs}ms`,
+        );
 
         clips.push({
           momentId: moment.id,
@@ -92,7 +108,7 @@ export class ProcessVideoUseCase {
           downloadUrl: `/media/clips/${outputFile}`,
         });
 
-        const progress = 30 + Math.round(((i + 1) / total) * 65);
+        const progress = 50 + Math.round(((i + 1) / total) * 50);
         logger.info('job_clip_done', `Clip ${i + 1}/${total} done`, {
           layer: 'domain',
           jobId,
@@ -125,5 +141,25 @@ export class ProcessVideoUseCase {
   ): Promise<void> {
     Object.assign(job, { ...patch, updatedAt: new Date().toISOString() });
     await this.jobRepository.update(job);
+  }
+
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    code: string,
+    message: string,
+  ): Promise<T> {
+    let timeoutId: NodeJS.Timeout | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`${code}: ${message}`));
+      }, timeoutMs);
+    });
+
+    try {
+      return await Promise.race([promise, timeoutPromise]) as T;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
   }
 }

@@ -3,6 +3,9 @@ import { AiMomentsPayload } from '../entities/ai_moments_payload';
 import { AppError } from '../../../../core/errors/app_error';
 import { logger } from '../../../../core/logging/logger';
 
+const MIN_MOMENTS = 3;
+const MAX_MOMENTS = 10;
+
 const FunnyMomentSchema = z.object({
   id: z.string().min(1),
   startSec: z.number().nonnegative(),
@@ -15,10 +18,34 @@ const FunnyMomentSchema = z.object({
 const AiMomentsPayloadSchema = z.object({
   videoTitle: z.string().min(1),
   language: z.enum(['uk', 'uk_18', 'en', 'ru']),
-  moments: z.array(FunnyMomentSchema).min(3).max(10),
+  moments: z.array(FunnyMomentSchema).min(MIN_MOMENTS).max(MAX_MOMENTS),
 });
 
 const MAX_CLIP_DURATION_SEC = 120;
+
+function summarizeRawPayload(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== 'object') {
+    return { rawType: typeof raw };
+  }
+
+  const payload = raw as Record<string, unknown>;
+  const moments = Array.isArray(payload['moments']) ? payload['moments'] : [];
+  const invalidMomentShapeCount = moments.filter((moment) => {
+    if (!moment || typeof moment !== 'object') return true;
+    const m = moment as Record<string, unknown>;
+    return typeof m['id'] !== 'string' || typeof m['startSec'] !== 'number' || typeof m['endSec'] !== 'number';
+  }).length;
+
+  return {
+    hasVideoTitle: typeof payload['videoTitle'] === 'string' && payload['videoTitle'].length > 0,
+    language: payload['language'],
+    momentCount: moments.length,
+    invalidMomentShapeCount,
+    sampleMomentIds: moments
+      .slice(0, 5)
+      .map((moment) => (moment && typeof moment === 'object' ? (moment as Record<string, unknown>)['id'] : null)),
+  };
+}
 
 export class ValidateAiPayloadUseCase {
   execute(raw: unknown): AiMomentsPayload {
@@ -26,7 +53,11 @@ export class ValidateAiPayloadUseCase {
     if (!parseResult.success) {
       logger.warn('validate_payload_schema_failed', 'AI payload schema validation failed', {
         layer: 'domain',
-        data: { issues: parseResult.error.issues },
+        data: {
+          constraints: { minMoments: MIN_MOMENTS, maxMoments: MAX_MOMENTS, maxClipDurationSec: MAX_CLIP_DURATION_SEC },
+          payloadSummary: summarizeRawPayload(raw),
+          issues: parseResult.error.issues,
+        },
       });
       throw new AppError(
         'INVALID_AI_PAYLOAD',

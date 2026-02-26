@@ -7,11 +7,24 @@ export function requestContextMiddleware(
   res: Response,
   next: NextFunction,
 ): void {
-  const requestId =
-    (req.headers['x-request-id'] as string | undefined) ?? uuidv4();
+  const clientRequestIdHeader = req.headers['x-client-request-id'];
+  const clientRequestId = Array.isArray(clientRequestIdHeader)
+    ? clientRequestIdHeader[0]
+    : clientRequestIdHeader;
+  const requestIdHeader = req.headers['x-request-id'];
+  const requestIdFromHeader = Array.isArray(requestIdHeader)
+    ? requestIdHeader[0]
+    : requestIdHeader;
+  const requestId = requestIdFromHeader ?? clientRequestId ?? uuidv4();
+  const requestIdSource = requestIdFromHeader
+    ? 'x-request-id'
+    : clientRequestId
+      ? 'x-client-request-id'
+      : 'generated';
   const endpoint = `${req.method} ${req.path}`;
 
   res.setHeader('x-request-id', requestId);
+  res.setHeader('x-correlation-id', requestId);
 
   const start = Date.now();
 
@@ -24,6 +37,8 @@ export function requestContextMiddleware(
         path: req.path,
         query: req.query as Record<string, unknown>,
         userAgent: req.headers['user-agent'],
+        requestIdSource,
+        clientRequestId,
       },
     });
 

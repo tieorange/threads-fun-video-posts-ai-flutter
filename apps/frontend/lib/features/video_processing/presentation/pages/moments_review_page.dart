@@ -7,6 +7,7 @@ import '../../domain/entities/funny_moment.dart';
 import '../cubits/moments_review_cubit.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 class MomentsReviewPage extends StatefulWidget {
   const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
@@ -19,6 +20,7 @@ class MomentsReviewPage extends StatefulWidget {
 }
 
 class _MomentsReviewPageState extends State<MomentsReviewPage> {
+  static const int _minMomentsToGenerate = 3;
   final _registeredFrames = <String>{};
 
   String _videoId(String url) {
@@ -57,29 +59,29 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
 
   void _generate() {
     final selected = context.read<MomentsReviewCubit>().state.selectedMoments;
-    if (selected.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one moment to generate.')),
+    if (selected.length < _minMomentsToGenerate) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        const SnackBar(content: Text('Select at least 3 moments to generate.')),
       );
       return;
     }
     final payload = Map<String, dynamic>.from(widget.aiPayload);
     payload['moments'] = selected
-        .map((m) => {
-              'id': m.id,
-              'startSec': m.startSec,
-              'endSec': m.endSec,
-              'caption': m.caption,
-              'postText': m.postText,
-              'reason': m.reason,
-            })
+        .map(
+          (m) => {
+            'id': m.id,
+            'startSec': m.startSec,
+            'endSec': m.endSec,
+            'caption': m.caption,
+            'postText': m.postText,
+            'reason': m.reason,
+          },
+        )
         .toList();
 
-    context.read<ProcessCubit>().startProcessing(
-          widget.youtubeUrl,
-          payload,
-          selected,
-        );
+    context.read<ProcessCubit>().startProcessing(widget.youtubeUrl, payload, selected);
     context.go('/processing');
   }
 
@@ -93,11 +95,13 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
       actions: [
         BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
           builder: (context, state) => TextButton(
-            onPressed: state.selected.length == state.moments.length
+            onPressed: state.moments.isEmpty
+                ? null
+                : state.selected.length == state.moments.length
                 ? context.read<MomentsReviewCubit>().clearAll
                 : context.read<MomentsReviewCubit>().selectAll,
             child: Text(
-              state.selected.length == state.moments.length
+              state.moments.isNotEmpty && state.selected.length == state.moments.length
                   ? 'Deselect All'
                   : 'Select All',
             ),
@@ -106,6 +110,18 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
       ],
       body: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
         builder: (context, state) {
+          if (state.moments.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No moments found in AI response.\nGo back and regenerate after transcript is available.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
           return Column(
             children: [
               Expanded(
@@ -133,10 +149,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: selected
-                                ? BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  )
+                                ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
                                 : BorderSide.none,
                           ),
                           child: Column(
@@ -152,9 +165,8 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                                       right: 8,
                                       child: _SelectionBadge(
                                         selected: selected,
-                                        onTap: () => context
-                                            .read<MomentsReviewCubit>()
-                                            .toggle(moment.id),
+                                        onTap: () =>
+                                            context.read<MomentsReviewCubit>().toggle(moment.id),
                                       ),
                                     ),
                                   ],
@@ -169,30 +181,23 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                                     children: [
                                       Text(
                                         moment.caption,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(fontWeight: FontWeight.bold),
+                                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         '${moment.startSec.toStringAsFixed(0)}s – ${moment.endSec.toStringAsFixed(0)}s  •  ${(moment.endSec - moment.startSec).toStringAsFixed(0)}s clip',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         moment.postText,
-                                        style:
-                                            Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(context).textTheme.bodySmall,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -228,7 +233,7 @@ class _SelectionBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final badge = GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -255,6 +260,8 @@ class _SelectionBadge extends StatelessWidget {
         ),
       ),
     );
+
+    return PointerInterceptor(child: badge);
   }
 }
 
@@ -267,6 +274,7 @@ class _BottomBar extends StatelessWidget {
   final int selectedCount;
   final int totalCount;
   final VoidCallback onGenerate;
+  static const int _minMomentsToGenerate = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +289,7 @@ class _BottomBar extends StatelessWidget {
             ),
             const Spacer(),
             FilledButton.icon(
-              onPressed: selectedCount > 0 ? onGenerate : null,
+              onPressed: selectedCount >= _minMomentsToGenerate ? onGenerate : null,
               icon: const Icon(Icons.auto_awesome),
               label: Text('Generate $selectedCount Post${selectedCount == 1 ? '' : 's'}'),
             ),
