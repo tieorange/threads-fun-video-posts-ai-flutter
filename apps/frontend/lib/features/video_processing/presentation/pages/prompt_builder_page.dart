@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/prompt_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class PromptBuilderPage extends StatelessWidget {
   const PromptBuilderPage({super.key});
@@ -10,7 +11,7 @@ class PromptBuilderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppShellScaffold(
-      title: 'Copy AI Prompt',
+      title: t.prompt.title,
       leading: BackButton(onPressed: () => context.go('/')),
       body: BlocBuilder<PromptCubit, PromptState>(
         builder: (context, state) {
@@ -29,16 +30,13 @@ class PromptBuilderPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      '1. Copy the prompt below',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                    Text(t.prompt.step1, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
-                      '2. Paste it into ChatGPT, Claude, Gemini, etc.',
+                      t.prompt.step2,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Expanded(
@@ -47,24 +45,23 @@ class PromptBuilderPage extends StatelessWidget {
                           padding: const EdgeInsets.all(16),
                           child: SelectableText(
                             prompt,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  fontFamily: 'monospace',
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed: () =>
-                          context.read<PromptCubit>().copyToClipboard(),
+                      onPressed: () => context.read<PromptCubit>().copyToClipboard(),
                       icon: Icon(copied ? Icons.check : Icons.copy),
-                      label: Text(copied ? 'Copied!' : 'Copy Prompt'),
+                      label: Text(copied ? t.prompt.copied : t.prompt.copyPrompt),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton(
                       onPressed: () => context.go('/paste'),
-                      child: const Text('I\'ve got the AI response — Paste JSON'),
+                      child: Text(t.prompt.nextStep),
                     ),
                   ],
                 ),

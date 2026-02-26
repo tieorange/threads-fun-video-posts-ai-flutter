@@ -7,6 +7,7 @@ import '../cubits/json_paste_cubit.dart';
 import '../cubits/moments_review_cubit.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class AnalyzeInputPage extends StatefulWidget {
   const AnalyzeInputPage({super.key});
@@ -19,11 +20,11 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   final _urlController = TextEditingController();
   String _language = 'en';
 
-  static const _languages = [
-    ('en', 'English'),
-    ('uk', 'Ukrainian'),
-    ('uk_18', 'Ukrainian 18+'),
-    ('ru', 'Russian'),
+  List<(String, String)> get _languages => [
+    ('en', t.analyze.languages.en),
+    ('uk', t.analyze.languages.uk),
+    ('uk_18', t.analyze.languages.uk_18),
+    ('ru', t.analyze.languages.ru),
   ];
 
   @override
@@ -54,7 +55,7 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   @override
   Widget build(BuildContext context) {
     return AppShellScaffold(
-      title: 'Funny Threads AI',
+      title: t.analyze.title,
       body: BlocListener<AnalyzeCubit, AnalyzeState>(
         listener: (context, state) {
           if (state is AnalyzeSuccess) {
@@ -79,18 +80,18 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Turn a YouTube video into viral clips',
+                    t.analyze.subtitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
                   TextField(
                     controller: _urlController,
-                    decoration: const InputDecoration(
-                      labelText: 'YouTube URL',
-                      hintText: 'https://www.youtube.com/watch?v=...',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.link),
+                    decoration: InputDecoration(
+                      labelText: t.analyze.urlLabel,
+                      hintText: t.analyze.urlHint,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.link),
                     ),
                     keyboardType: TextInputType.url,
                     onSubmitted: (_) => _analyze(),
@@ -98,7 +99,7 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
                   const SizedBox(height: 16),
                   DropdownMenu<String>(
                     initialSelection: _language,
-                    label: const Text('Language profile'),
+                    label: Text(t.analyze.languageLabel),
                     leadingIcon: const Icon(Icons.language),
                     expandedInsets: EdgeInsets.zero,
                     dropdownMenuEntries: _languages
@@ -119,7 +120,7 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.search),
-                        label: Text(loading ? 'Analyzing...' : 'Analyze'),
+                        label: Text(loading ? t.common.analyzing : t.common.analyze),
                       );
                     },
                   ),

@@ -3,7 +3,7 @@ import { IJobRepository } from '../../domain/repositories/job_repository.interfa
 import { LocalStorageDataSource } from '../datasources/local_storage.datasource';
 
 export class JobRepositoryImpl implements IJobRepository {
-  constructor(private readonly storage: LocalStorageDataSource) {}
+  constructor(private readonly storage: LocalStorageDataSource) { }
 
   save(job: JobRecord): Promise<void> {
     return this.storage.saveJob(job);
@@ -19,5 +19,9 @@ export class JobRepositoryImpl implements IJobRepository {
 
   update(job: JobRecord): Promise<void> {
     return this.storage.saveJob(job);
+  }
+
+  delete(jobId: string): Promise<void> {
+    return this.storage.deleteJobFiles(jobId);
   }
 }

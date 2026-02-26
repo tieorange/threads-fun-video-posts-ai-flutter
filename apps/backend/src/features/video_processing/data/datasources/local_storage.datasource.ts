@@ -104,6 +104,44 @@ export class LocalStorageDataSource {
     }
   }
 
+  async deleteJobFiles(jobId: string): Promise<void> {
+    const jobFile = this.jobPath(jobId);
+    const videoFile = path.join(this.storagePath, 'videos', `${jobId}.mp4`);
+    const clipsDir = path.join(this.storagePath, 'clips');
+
+    try {
+      // Delete video/symlink
+      try {
+        await fs.unlink(videoFile);
+      } catch { }
+
+      // Delete clips
+      try {
+        const entries = await fs.readdir(clipsDir);
+        for (const entry of entries) {
+          if (entry.startsWith(`${jobId}_`)) {
+            await fs.unlink(path.join(clipsDir, entry));
+          }
+        }
+      } catch { }
+
+      // Delete job record
+      try {
+        await fs.unlink(jobFile);
+      } catch { }
+
+      logger.info('storage_job_deleted', `All files for job ${jobId} deleted`, {
+        layer: 'data',
+        jobId,
+      });
+    } catch (err: unknown) {
+      logger.error('storage_job_delete_failed', String(err), {
+        layer: 'data',
+        jobId,
+      });
+    }
+  }
+
   async ensureDirectories(): Promise<void> {
     const dirs = ['captions', 'videos', 'clips', 'jobs'];
     await Promise.all(

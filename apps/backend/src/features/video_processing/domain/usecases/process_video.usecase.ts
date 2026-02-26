@@ -171,6 +171,10 @@ export class ProcessVideoUseCase {
         ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
       });
       await this.updateJob(job, { status: 'failed', error: message });
+      // Cleanup locally downloaded video if it's not yet cached or if something went wrong
+      try {
+        await this.jobRepository.delete(jobId);
+      } catch { }
     }
   }
 

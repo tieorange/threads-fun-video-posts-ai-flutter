@@ -5,4 +5,5 @@ export interface IJobRepository {
   findById(jobId: string): Promise<JobRecord | null>;
   findAll(): Promise<JobRecord[]>;
   update(job: JobRecord): Promise<void>;
+  delete(jobId: string): Promise<void>;
 }

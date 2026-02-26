@@ -32,10 +32,38 @@ export class VideoCacheDataSource {
         const cacheVideoPath = path.join(this.videosDir, `${videoId}.mp4`);
 
         try {
-            // If the cache file doesn't exist yet, rename the job-specific file to the cache-specific file
-            // Then symlink the job-specific file to the cache-specific file
-            await fs.rename(jobVideoPath, cacheVideoPath);
-            await fs.symlink(cacheVideoPath, jobVideoPath);
+            // Check if job video exists before trying to move it
+            try {
+                await fs.access(jobVideoPath);
+            } catch {
+                logger.warn('video_cache_link_skipped_no_source', 'Job video not found, skipping cache link', {
+                    layer: 'data',
+                    data: { jobId, videoId, jobVideoPath },
+                });
+                return;
+            }
+
+            // If the cache file already exists, just remove the job file (it's redundant)
+            try {
+                await fs.access(cacheVideoPath);
+                logger.info('video_cache_link_skipped_exists', 'Cache already exists, removing job-specific file', {
+                    layer: 'data',
+                    data: { jobId, videoId, cacheVideoPath },
+                });
+                await fs.unlink(jobVideoPath);
+            } catch {
+                // Cache doesn't exist, so rename the job file to cache
+                await fs.rename(jobVideoPath, cacheVideoPath);
+            }
+
+            // Always ensure the job-specific path is a symlink to the cache
+            // This ensures consistent behavior for the rest of the pipeline
+            try {
+                await fs.symlink(cacheVideoPath, jobVideoPath);
+            } catch (symError: unknown) {
+                // If symlink already exists, it's fine
+                if (symError instanceof Error && (symError as { code?: string }).code !== 'EEXIST') throw symError;
+            }
 
             logger.info('video_cache_linked', `Linked job video to cache`, {
                 layer: 'data',
@@ -54,7 +82,16 @@ export class VideoCacheDataSource {
         const jobVideoPath = path.join(this.videosDir, `${jobId}.mp4`);
 
         try {
-            await fs.symlink(cacheVideoPath, jobVideoPath);
+            await fs.access(cacheVideoPath);
+
+            try {
+                await fs.symlink(cacheVideoPath, jobVideoPath);
+            } catch (symError: unknown) {
+                if (symError instanceof Error && (symError as { code?: string }).code !== 'EEXIST') throw symError;
+                // If it exists, verify it points to the right place or replace it
+                await fs.unlink(jobVideoPath);
+                await fs.symlink(cacheVideoPath, jobVideoPath);
+            }
             logger.info('video_cache_restored', `Restored job video from cache`, {
                 layer: 'data',
                 data: { jobId, videoId, jobVideoPath },
@@ -63,7 +100,7 @@ export class VideoCacheDataSource {
         } catch (err: unknown) {
             logger.error('video_cache_restore_failed', String(err), {
                 layer: 'data',
-                data: { jobId, videoId },
+                data: { jobId, videoId, jobVideoPath },
             });
             throw err;
         }

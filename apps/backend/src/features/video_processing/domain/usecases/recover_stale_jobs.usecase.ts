@@ -2,7 +2,7 @@ import { IJobRepository } from '../repositories/job_repository.interface';
 import { logger } from '../../../../core/logging/logger';
 
 export class RecoverStaleJobsUseCase {
-  constructor(private readonly jobRepository: IJobRepository) {}
+  constructor(private readonly jobRepository: IJobRepository) { }
 
   async execute(): Promise<number> {
     const jobs = await this.jobRepository.findAll();
@@ -13,8 +13,9 @@ export class RecoverStaleJobsUseCase {
       job.error = 'Job interrupted by server restart. Please run again.';
       job.updatedAt = new Date().toISOString();
       await this.jobRepository.update(job);
+      await this.jobRepository.delete(job.jobId);
 
-      logger.warn('job_recovered_as_failed', 'Recovered stale job as failed', {
+      logger.warn('job_recovered_as_failed', 'Recovered stale job and cleaned up', {
         layer: 'domain',
         jobId: job.jobId,
         data: { previousStatus: 'queued/running' },

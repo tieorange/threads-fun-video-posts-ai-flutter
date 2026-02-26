@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../di/injection.dart';
 import '../logging/log_exporter.dart';
+import '../../i18n/strings.g.dart';
 
 /// Shared scaffold used by every page.
 /// Always renders a "Copy logs" action in the AppBar so logs are
@@ -33,10 +34,7 @@ class AppShellScaffold extends StatelessWidget {
       appBar: AppBar(
         title: title != null ? Text(title!) : null,
         leading: leading,
-        actions: [
-          ...?actions,
-          _CopyLogsButton(),
-        ],
+        actions: [...?actions, _CopyLogsButton()],
       ),
       body: body,
       floatingActionButton: floatingActionButton,
@@ -50,17 +48,14 @@ class _CopyLogsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.bug_report_outlined),
-      tooltip: 'Copy logs',
+      tooltip: t.common.copyLogs,
       onPressed: () async {
         final exporter = sl<LogExporter>();
         final bundle = exporter.buildAiBundle();
         await Clipboard.setData(ClipboardData(text: bundle));
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logs copied! Paste to AI to diagnose.'),
-              duration: Duration(seconds: 3),
-            ),
+            SnackBar(content: Text(t.common.logsCopied), duration: const Duration(seconds: 3)),
           );
         }
       },

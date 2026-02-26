@@ -6,12 +6,22 @@ export interface IFfmpegDataSource {
   cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void>;
 }
 
+export interface ClipOptions {
+  preset: string;
+  crf: number;
+  maxHeight: number;
+  fps: number;
+  audioBitrate: string;
+}
+
 export class FfmpegDataSource implements IFfmpegDataSource {
+  constructor(private readonly options: ClipOptions) { }
+
   cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void> {
     const start = Date.now();
     logger.info('ffmpeg_cut_clip_start', 'Starting ffmpeg cut', {
       layer: 'data',
-      data: { inputPath, startSec, durationSec, outputPath },
+      data: { inputPath, startSec, durationSec, outputPath, options: this.options },
     });
 
     return new Promise((resolve, reject) => {
@@ -22,11 +32,11 @@ export class FfmpegDataSource implements IFfmpegDataSource {
         .videoCodec('libx264')
         .audioCodec('aac')
         .outputOptions([
-          '-preset', 'veryfast',
-          '-crf', '24',
-          '-vf', "scale='min(1280,iw)':-2,fps=30",
+          '-preset', this.options.preset,
+          '-crf', this.options.crf.toString(),
+          '-vf', `scale='min(1280,iw)':-2,fps=${this.options.fps}`,
           '-pix_fmt', 'yuv420p',
-          '-b:a', '96k',
+          '-b:a', this.options.audioBitrate,
           '-movflags', '+faststart',
         ])
         .on('end', () => {

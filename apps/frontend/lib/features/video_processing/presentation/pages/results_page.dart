@@ -10,6 +10,7 @@ import '../../domain/entities/funny_moment.dart';
 import '../cubits/process_cubit.dart';
 import '../cubits/analyze_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class ResultsPage extends StatelessWidget {
   const ResultsPage({super.key});
@@ -25,7 +26,7 @@ class ResultsPage extends StatelessWidget {
     final moments = {for (final m in jobStatus.moments) m.id: m};
 
     return AppShellScaffold(
-      title: 'Your Clips',
+      title: t.results.title,
       leading: BackButton(
         onPressed: () {
           context.read<AnalyzeCubit>().reset();
@@ -35,7 +36,7 @@ class ResultsPage extends StatelessWidget {
       ),
       actions: [
         IconButton(
-          tooltip: 'Start over',
+          tooltip: t.results.startOver,
           icon: const Icon(Icons.refresh),
           onPressed: () {
             context.read<AnalyzeCubit>().reset();
@@ -45,7 +46,7 @@ class ResultsPage extends StatelessWidget {
         ),
       ],
       body: jobStatus.clips.isEmpty
-          ? const Center(child: Text('No clips were generated.'))
+          ? Center(child: Text(t.results.noClips))
           : LayoutBuilder(
               builder: (context, constraints) {
                 final wide = constraints.maxWidth >= 720;
@@ -124,9 +125,7 @@ class _ClipCardState extends State<_ClipCard> {
     final text = widget.moment?.postText ?? '';
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Post text copied!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.results.postTextCopied)));
     }
   }
 
@@ -154,7 +153,10 @@ class _ClipCardState extends State<_ClipCard> {
                         children: [
                           Icon(Icons.play_circle_outline, size: 56, color: cs.primary),
                           const SizedBox(height: 8),
-                          Text('Tap to preview', style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            t.results.tapToPreview,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ],
                       ),
                     ),
@@ -199,7 +201,7 @@ class _ClipCardState extends State<_ClipCard> {
                         ),
                         const SizedBox(width: 8),
                         IconButton.filledTonal(
-                          tooltip: 'Copy post text',
+                          tooltip: t.results.copyPostText,
                           icon: const Icon(Icons.copy, size: 18),
                           onPressed: _copyPostText,
                         ),
@@ -214,7 +216,7 @@ class _ClipCardState extends State<_ClipCard> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.play_arrow),
-                        label: const Text('Preview'),
+                        label: Text(t.results.preview),
                         onPressed: _showPlayer ? null : _initPlayer,
                       ),
                     ),
@@ -222,7 +224,7 @@ class _ClipCardState extends State<_ClipCard> {
                     Expanded(
                       child: FilledButton.icon(
                         icon: const Icon(Icons.download),
-                        label: const Text('Download'),
+                        label: Text(t.results.download),
                         onPressed: _download,
                       ),
                     ),

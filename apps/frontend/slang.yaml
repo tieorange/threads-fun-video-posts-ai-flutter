@@ -1,0 +1,9 @@
+# Slang configuration
+# See: https://pub.dev/packages/slang
+
+base_locale: uk
+fallback_base_locale: true
+input_directory: lib/i18n
+input_file_pattern: .i18n.json
+output_file_name_pattern: strings.g.dart
+output_format: single_file

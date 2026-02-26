@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../cubits/json_paste_cubit.dart';
 import '../cubits/moments_review_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class AiJsonPastePage extends StatefulWidget {
   const AiJsonPastePage({super.key});
@@ -28,7 +29,7 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
   @override
   Widget build(BuildContext context) {
     return AppShellScaffold(
-      title: 'Paste AI Response',
+      title: t.paste.title,
       leading: BackButton(onPressed: () => context.go('/prompt')),
       body: BlocListener<JsonPasteCubit, JsonPasteState>(
         listener: (context, state) {
@@ -45,10 +46,7 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Paste the JSON response from your AI tool',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(t.paste.subtitle, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 16),
                   Expanded(
                     child: TextField(
@@ -56,15 +54,14 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
                       maxLines: null,
                       expands: true,
                       textAlignVertical: TextAlignVertical.top,
-                      decoration: const InputDecoration(
-                        hintText: '{\n  "videoTitle": "...",\n  "moments": [...]\n}',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: t.paste.hint,
+                        border: const OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontFamily: 'monospace'),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -80,8 +77,10 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.error_outline,
-                                      color: Theme.of(context).colorScheme.onErrorContainer),
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: Theme.of(context).colorScheme.onErrorContainer,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -103,7 +102,7 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
                   FilledButton.icon(
                     onPressed: _validate,
                     icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Validate & Preview Moments'),
+                    label: Text(t.paste.validate),
                   ),
                 ],
               ),

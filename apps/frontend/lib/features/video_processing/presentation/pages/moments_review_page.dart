@@ -8,6 +8,7 @@ import '../cubits/moments_review_cubit.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class MomentsReviewPage extends StatefulWidget {
   const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
@@ -62,9 +63,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
     if (selected.length < _minMomentsToGenerate) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(
-        const SnackBar(content: Text('Select at least 3 moments to generate.')),
-      );
+      ).showSnackBar(SnackBar(content: Text(t.review.minSelectionError)));
       return;
     }
     final payload = Map<String, dynamic>.from(widget.aiPayload);
@@ -90,7 +89,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
     final videoId = _videoId(widget.youtubeUrl);
 
     return AppShellScaffold(
-      title: 'Review Moments',
+      title: t.review.title,
       leading: BackButton(onPressed: () => context.go('/paste')),
       actions: [
         BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
@@ -102,8 +101,8 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                 : context.read<MomentsReviewCubit>().selectAll,
             child: Text(
               state.moments.isNotEmpty && state.selected.length == state.moments.length
-                  ? 'Deselect All'
-                  : 'Select All',
+                  ? t.review.deselectAll
+                  : t.review.selectAll,
             ),
           ),
         ),
@@ -111,13 +110,10 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
       body: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
         builder: (context, state) {
           if (state.moments.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'No moments found in AI response.\nGo back and regenerate after transcript is available.',
-                  textAlign: TextAlign.center,
-                ),
+                padding: const EdgeInsets.all(24),
+                child: Text(t.review.noMoments, textAlign: TextAlign.center),
               ),
             );
           }
@@ -189,7 +185,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${moment.startSec.toStringAsFixed(0)}s – ${moment.endSec.toStringAsFixed(0)}s  •  ${(moment.endSec - moment.startSec).toStringAsFixed(0)}s clip',
+                                        '${moment.startSec.toStringAsFixed(0)}s – ${moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (moment.endSec - moment.startSec).toStringAsFixed(0))}',
                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
@@ -284,14 +280,14 @@ class _BottomBar extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              '$selectedCount of $totalCount selected',
+              t.review.selectedInfo(selected: selectedCount, total: totalCount),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const Spacer(),
             FilledButton.icon(
               onPressed: selectedCount >= _minMomentsToGenerate ? onGenerate : null,
               icon: const Icon(Icons.auto_awesome),
-              label: Text('Generate $selectedCount Post${selectedCount == 1 ? '' : 's'}'),
+              label: Text(t.review.generate(count: selectedCount)),
             ),
           ],
         ),

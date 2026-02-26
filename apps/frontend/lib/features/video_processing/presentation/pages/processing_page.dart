@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
+import '../../../../../i18n/strings.g.dart';
 
 class ProcessingPage extends StatelessWidget {
   const ProcessingPage({super.key});
@@ -10,7 +11,7 @@ class ProcessingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppShellScaffold(
-      title: 'Generating Clips',
+      title: t.processing.title,
       body: BlocListener<ProcessCubit, ProcessState>(
         listener: (context, state) {
           if (state is ProcessDone) {
@@ -27,8 +28,46 @@ class ProcessingPage extends StatelessWidget {
         },
         child: BlocBuilder<ProcessCubit, ProcessState>(
           builder: (context, state) {
+            if (state is ProcessFailure) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          t.processing.errorTitle,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          state.message,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 32),
+                        FilledButton.icon(
+                          onPressed: () => context.go('/review'),
+                          icon: const Icon(Icons.arrow_back),
+                          label: Text(t.processing.goBack),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
             final (label, progress) = switch (state) {
-              ProcessSubmitting() => ('Submitting job…', 0.0),
+              ProcessSubmitting() => (t.processing.submitting, 0.0),
               ProcessRunning(:final progress) => (_progressLabel(progress), progress / 100.0),
               _ => ('Starting…', 0.0),
             };
@@ -64,7 +103,7 @@ class ProcessingPage extends StatelessWidget {
                         ),
                       const SizedBox(height: 32),
                       Text(
-                        'Downloading and cutting your selected moments.\nThis may take a few minutes depending on video length.',
+                        t.processing.disclaimer,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -82,9 +121,9 @@ class ProcessingPage extends StatelessWidget {
   }
 
   String _progressLabel(int progress) {
-    if (progress <= 10) return 'Fetching video info…';
-    if (progress <= 50) return 'Downloading video…';
-    if (progress < 100) return 'Cutting clips…';
-    return 'Done!';
+    if (progress <= 10) return t.processing.fetchingInfo;
+    if (progress <= 50) return t.processing.downloading;
+    if (progress < 100) return t.processing.cutting;
+    return t.common.done;
   }
 }

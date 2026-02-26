@@ -6,6 +6,8 @@ import 'core/logging/log_entry.dart';
 import 'core/logging/logger.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/router.dart';
+import 'i18n/strings.g.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class _AppBlocObserver extends BlocObserver {
   const _AppBlocObserver(this._log);
@@ -35,6 +37,10 @@ class _AppBlocObserver extends BlocObserver {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Slang and set Ukrainian as default
+  LocaleSettings.setLocale(AppLocale.uk);
+
   setupDependencies();
 
   final log = sl<AppLogger>();
@@ -70,7 +76,7 @@ void main() {
   log.info('app_start', 'App starting', layer: AppLayer.core, feature: 'core');
 
   initCubits();
-  runApp(const FunnyThreadsApp());
+  runApp(TranslationProvider(child: const FunnyThreadsApp()));
 }
 
 class FunnyThreadsApp extends StatelessWidget {
@@ -85,6 +91,9 @@ class FunnyThreadsApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
+      locale: TranslationProvider.of(context).flutterLocale, // use slang locale
+      supportedLocales: AppLocaleUtils.supportedLocales,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );
   }
 }

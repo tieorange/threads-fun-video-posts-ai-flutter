@@ -1,0 +1,71 @@
+{
+    "common": {
+        "copyLogs": "Copy logs",
+        "logsCopied": "Logs copied! Paste to AI to diagnose.",
+        "back": "Back",
+        "done": "Done!",
+        "error": "Error",
+        "analyzing": "Analyzing...",
+        "analyze": "Analyze",
+        "loading": "Loading...",
+        "cancel": "Cancel",
+        "refresh": "Refresh"
+    },
+    "analyze": {
+        "title": "Funny Threads AI",
+        "subtitle": "Turn a YouTube video into viral clips",
+        "urlLabel": "YouTube URL",
+        "urlHint": "https://www.youtube.com/watch?v=...",
+        "languageLabel": "Language profile",
+        "languages": {
+            "en": "English",
+            "uk": "Ukrainian",
+            "uk_18": "Ukrainian 18+",
+            "ru": "Russian"
+        }
+    },
+    "prompt": {
+        "title": "Copy AI Prompt",
+        "step1": "1. Copy the prompt below",
+        "step2": "2. Paste it into ChatGPT, Claude, Gemini, etc.",
+        "copyPrompt": "Copy Prompt",
+        "copied": "Copied!",
+        "nextStep": "I've got the AI response — Paste JSON"
+    },
+    "paste": {
+        "title": "Paste AI Response",
+        "subtitle": "Paste the JSON response from your AI tool",
+        "hint": "{\n  \"videoTitle\": \"...\",\n  \"moments\": [...]\n}",
+        "validate": "Validate & Preview Moments"
+    },
+    "review": {
+        "title": "Review Moments",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "noMoments": "No moments found in AI response.\nGo back and regenerate after transcript is available.",
+        "minSelectionError": "Select at least 3 moments to generate.",
+        "clipDuration": "$duration clip",
+        "selectedInfo": "$selected of $total selected",
+        "generate": "Generate $count Video Posts"
+    },
+    "processing": {
+        "title": "Generating Clips",
+        "errorTitle": "Something went wrong",
+        "goBack": "Go back to review",
+        "submitting": "Submitting job...",
+        "fetchingInfo": "Fetching video info...",
+        "downloading": "Downloading video...",
+        "cutting": "Cutting clips...",
+        "disclaimer": "Downloading and cutting your selected moments.\nThis may take a few minutes depending on video length."
+    },
+    "results": {
+        "title": "Your Clips",
+        "startOver": "Start over",
+        "noClips": "No clips were generated.",
+        "tapToPreview": "Tap to preview",
+        "copyPostText": "Copy post text",
+        "postTextCopied": "Post text copied!",
+        "preview": "Preview",
+        "download": "Download"
+    }
+}
