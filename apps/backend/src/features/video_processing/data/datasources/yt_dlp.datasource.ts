@@ -33,9 +33,7 @@ export class YtDlpDataSource {
       const info = await ytDlp(url, {
         dumpSingleJson: true,
         noWarnings: true,
-        noCallHome: true,
         noCheckCertificate: true,
-        preferFreeFormats: true,
         skipDownload: true,
       }) as YtDlpMetadata;
 
@@ -54,7 +52,6 @@ export class YtDlpDataSource {
   async getCaptions(url: string, language: Language): Promise<TranscriptSegment[]> {
     try {
       const langCodes = LANG_MAP[language];
-      const tempDir = path.join(this.storagePath, 'captions');
 
       const info = await ytDlp(url, {
         dumpSingleJson: true,
@@ -63,7 +60,6 @@ export class YtDlpDataSource {
         writeAutoSub: true,
         subLang: langCodes.join(','),
         subFormat: 'json3',
-        paths: tempDir,
       }) as { automatic_captions?: Record<string, SubtitleEntry[]>; subtitles?: Record<string, SubtitleEntry[]> };
 
       const captions = info.automatic_captions ?? info.subtitles ?? {};
@@ -91,7 +87,6 @@ export class YtDlpDataSource {
         output: outputPath,
         format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         noWarnings: true,
-        noCallHome: true,
         noCheckCertificate: true,
       });
       return path.join(this.storagePath, 'videos', `${jobId}.mp4`);

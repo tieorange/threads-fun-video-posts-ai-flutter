@@ -1,0 +1,7 @@
+node_modules/
+dist/
+storage/videos/
+storage/clips/
+storage/jobs/
+storage/captions/
+*.env
