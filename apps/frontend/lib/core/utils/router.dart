@@ -46,9 +46,16 @@ final appRouter = GoRouter(
     final chatFlow = sl<ChatFlowCubit>();
     final chatState = chatFlow.state;
     final path = state.uri.path;
+    final log = sl<AppLogger>();
 
     // Guard: /review requires completed state
     if (path == '/review' && chatState is! ChatFlowCompleted) {
+      log.warn(
+        'route_guard_review_redirect',
+        'Redirected from /review to / due to incomplete chat state',
+        layer: AppLayer.presentation,
+        data: {'chatState': chatState.runtimeType.toString()},
+      );
       // If we are still in a transient state or initial, redirect to home
       // But wait! If we just started, ChatFlowCubit might be restoring.
       // However, restoreState is called in constructor and is synchronous for localStorage.
@@ -56,7 +63,14 @@ final appRouter = GoRouter(
     }
 
     // Guard: /processing and /results require active process
-    if ((path == '/processing' || path == '/results') && sl<ProcessCubit>().state is ProcessIdle) {
+    if ((path == '/processing' || path == '/results') &&
+        sl<ProcessCubit>().state is ProcessIdle) {
+      log.warn(
+        'route_guard_process_redirect',
+        'Redirected due to idle process state',
+        layer: AppLayer.presentation,
+        data: {'path': path},
+      );
       return '/';
     }
 
@@ -85,7 +99,10 @@ final appRouter = GoRouter(
         final chatState = sl<ChatFlowCubit>().state;
         if (chatState is ChatFlowCompleted) {
           return _withProviders(
-            MomentsReviewPage(youtubeUrl: chatState.youtubeUrl, aiPayload: chatState.aiPayload),
+            MomentsReviewPage(
+              youtubeUrl: chatState.youtubeUrl,
+              aiPayload: chatState.aiPayload,
+            ),
           );
         }
 

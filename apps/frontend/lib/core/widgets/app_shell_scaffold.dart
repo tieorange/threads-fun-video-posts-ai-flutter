@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../di/injection.dart';
 import '../logging/log_exporter.dart';
+import '../logging/log_overlay_controller.dart';
 import '../theme/theme_cubit.dart';
 import '../utils/clipboard_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,9 +38,14 @@ class AppShellScaffold extends StatelessWidget {
       appBar: AppBar(
         title: title != null ? Text(title!) : null,
         leading: leading,
-        actions: [...?actions, const _ThemeToggleButton(), _CopyLogsButton()],
+        actions: [
+          ...?actions,
+          const _ThemeToggleButton(),
+          if (!kReleaseMode) const _DebugOverlayToggleButton(),
+          _CopyLogsButton(),
+        ],
       ),
-      body: SafeArea(top: false, child: body),
+      body: SafeArea(top: false, child: SelectionArea(child: body)),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
     );
@@ -49,7 +56,7 @@ class _CopyLogsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.bug_report_outlined),
+      icon: const Icon(Icons.content_copy_outlined),
       tooltip: t.common.copyLogs,
       onPressed: () async {
         final exporter = sl<LogExporter>();
@@ -57,7 +64,10 @@ class _CopyLogsButton extends StatelessWidget {
         await sl<ClipboardService>().copy(bundle);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(t.common.logsCopied), duration: const Duration(seconds: 3)),
+            SnackBar(
+              content: Text(t.common.logsCopied),
+              duration: const Duration(seconds: 3),
+            ),
           );
         }
       },
@@ -74,9 +84,30 @@ class _ThemeToggleButton extends StatelessWidget {
       builder: (context, themeMode) {
         final isDark = themeMode == ThemeMode.dark;
         return IconButton(
-          icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          icon: Icon(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ),
           tooltip: isDark ? t.common.toggleLight : t.common.toggleDark,
           onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+        );
+      },
+    );
+  }
+}
+
+class _DebugOverlayToggleButton extends StatelessWidget {
+  const _DebugOverlayToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = sl<LogOverlayController>();
+    return ValueListenableBuilder<bool>(
+      valueListenable: controller.isVisible,
+      builder: (context, isVisible, _) {
+        return IconButton(
+          icon: Icon(isVisible ? Icons.bug_report : Icons.bug_report_outlined),
+          tooltip: isVisible ? 'Hide debug overlay' : 'Show debug overlay',
+          onPressed: controller.toggle,
         );
       },
     );

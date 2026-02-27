@@ -44,9 +44,9 @@ class ChatMessageBubble extends StatelessWidget {
       alignment: alignment,
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.86,
         ),
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -57,15 +57,35 @@ class ChatMessageBubble extends StatelessWidget {
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 15,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message.text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _formatTime(message.timestamp),
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.72),
+                fontSize: 11,
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime timestamp) {
+    final hh = timestamp.hour.toString().padLeft(2, '0');
+    final mm = timestamp.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
   }
 
   Widget _buildErrorBubble(BuildContext context, ColorScheme colorScheme) {
@@ -73,9 +93,9 @@ class ChatMessageBubble extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.86,
         ),
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: colorScheme.errorContainer,
@@ -101,6 +121,7 @@ class ChatMessageBubble extends StatelessWidget {
                 style: TextStyle(
                   color: colorScheme.onErrorContainer,
                   fontSize: 15,
+                  height: 1.35,
                 ),
               ),
             ),
@@ -115,9 +136,9 @@ class ChatMessageBubble extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.86,
         ),
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
           borderRadius: const BorderRadius.only(

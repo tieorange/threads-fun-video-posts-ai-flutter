@@ -10,7 +10,11 @@ import '../../../../../core/widgets/app_shell_scaffold.dart';
 import '../../../../../i18n/strings.g.dart';
 
 class MomentsReviewPage extends StatefulWidget {
-  const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
+  const MomentsReviewPage({
+    super.key,
+    required this.youtubeUrl,
+    required this.aiPayload,
+  });
 
   final String youtubeUrl;
   final Map<String, dynamic> aiPayload;
@@ -20,13 +24,15 @@ class MomentsReviewPage extends StatefulWidget {
 }
 
 class _MomentsReviewPageState extends State<MomentsReviewPage> {
-  static const int _minMomentsToGenerate = 3;
+  static const int _minMomentsToGenerate = 1;
   final _registeredFrames = <String>{};
 
   String _videoId(String url) {
     final uri = Uri.tryParse(url);
     if (uri == null) return '';
-    if (uri.host.contains('youtu.be')) return uri.pathSegments.first;
+    if (uri.host.contains('youtu.be') && uri.pathSegments.isNotEmpty) {
+      return uri.pathSegments.first;
+    }
     return uri.queryParameters['v'] ?? '';
   }
 
@@ -65,46 +71,68 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
       ).showSnackBar(SnackBar(content: Text(t.review.minSelectionError)));
       return;
     }
-    final payload = Map<String, dynamic>.from(widget.aiPayload);
-    payload['moments'] = selected
-        .map(
-          (m) => {
-            'id': m.id,
-            'startSec': m.startSec,
-            'endSec': m.endSec,
-            'caption': m.caption,
-            'postText': m.postText,
-            'reason': m.reason,
-          },
-        )
-        .toList();
 
-    context.read<ProcessCubit>().startProcessing(widget.youtubeUrl, payload, selected);
+    final payload = Map<String, dynamic>.from(widget.aiPayload);
+    payload['moments'] =
+        selected
+            .map(
+              (m) => {
+                'id': m.id,
+                'startSec': m.startSec,
+                'endSec': m.endSec,
+                'caption': m.caption,
+                'postText': m.postText,
+                'reason': m.reason,
+              },
+            )
+            .toList();
+
+    context.read<ProcessCubit>().startProcessing(
+      widget.youtubeUrl,
+      payload,
+      selected,
+    );
     context.go('/processing');
+  }
+
+  String _selectedInfoText(int selected, int total) {
+    return t.review.selectedInfo
+        .replaceFirst('{selected}', selected.toString())
+        .replaceFirst('{total}', total.toString());
+  }
+
+  String _generateText(int selected) {
+    return t.review.generate.replaceFirst('{count}', selected.toString());
   }
 
   @override
   Widget build(BuildContext context) {
     final videoId = _videoId(widget.youtubeUrl);
+    final isCompact = MediaQuery.sizeOf(context).width < 640;
 
     return AppShellScaffold(
       title: t.review.title,
       leading: BackButton(onPressed: () => context.go('/prompt')),
       actions: [
-        BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
-          builder: (context, state) => TextButton(
-            onPressed: state.moments.isEmpty
-                ? null
-                : state.selected.length == state.moments.length
-                ? context.read<MomentsReviewCubit>().clearAll
-                : context.read<MomentsReviewCubit>().selectAll,
-            child: Text(
-              state.moments.isNotEmpty && state.selected.length == state.moments.length
-                  ? t.review.deselectAll
-                  : t.review.selectAll,
-            ),
+        if (!isCompact)
+          BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
+            builder: (context, state) {
+              final allSelected =
+                  state.moments.isNotEmpty &&
+                  state.selected.length == state.moments.length;
+              return TextButton(
+                onPressed:
+                    state.moments.isEmpty
+                        ? null
+                        : allSelected
+                        ? context.read<MomentsReviewCubit>().clearAll
+                        : context.read<MomentsReviewCubit>().selectAll,
+                child: Text(
+                  allSelected ? t.review.deselectAll : t.review.selectAll,
+                ),
+              );
+            },
           ),
-        ),
       ],
       body: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
         builder: (context, state) {
@@ -117,29 +145,52 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
             );
           }
 
+          final allSelected = state.selected.length == state.moments.length;
+
           return Column(
             children: [
+              _SelectionSummaryBar(
+                selectedCount: state.selected.length,
+                totalCount: state.moments.length,
+                selectedInfoText: _selectedInfoText(
+                  state.selected.length,
+                  state.moments.length,
+                ),
+                allSelected: allSelected,
+                onToggleAll:
+                    allSelected
+                        ? context.read<MomentsReviewCubit>().clearAll
+                        : context.read<MomentsReviewCubit>().selectAll,
+              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final crossCount = constraints.maxWidth >= 900 ? 2 : 1;
+                    final crossCount = constraints.maxWidth >= 920 ? 2 : 1;
+                    final listBottomPadding = isCompact ? 156.0 : 120.0;
 
                     if (crossCount == 1) {
                       return ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          12,
+                          16,
+                          listBottomPadding,
+                        ),
                         physics: const BouncingScrollPhysics(),
                         itemCount: state.moments.length,
                         itemBuilder: (context, index) {
+                          final moment = state.moments[index];
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.only(bottom: 12),
                             child: _MomentCard(
-                              moment: state.moments[index],
-                              selected: state.isSelected(state.moments[index].id),
+                              moment: moment,
+                              selected: state.isSelected(moment.id),
                               videoId: videoId,
-                              iframeSrc: _iframeUrl(videoId, state.moments[index]),
-                              onToggle: () => context.read<MomentsReviewCubit>().toggle(
-                                state.moments[index].id,
-                              ),
+                              iframeSrc: _iframeUrl(videoId, moment),
+                              onToggle:
+                                  () => context
+                                      .read<MomentsReviewCubit>()
+                                      .toggle(moment.id),
                               buildIframe: _buildIframe,
                             ),
                           );
@@ -148,23 +199,32 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                     }
 
                     return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      physics: const BouncingScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 0.85, // Taller cards for grid to avoid overflow
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        12,
+                        16,
+                        listBottomPadding,
                       ),
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 0.86,
+                          ),
                       itemCount: state.moments.length,
                       itemBuilder: (context, index) {
+                        final moment = state.moments[index];
                         return _MomentCard(
-                          moment: state.moments[index],
-                          selected: state.isSelected(state.moments[index].id),
+                          moment: moment,
+                          selected: state.isSelected(moment.id),
                           videoId: videoId,
-                          iframeSrc: _iframeUrl(videoId, state.moments[index]),
-                          onToggle: () =>
-                              context.read<MomentsReviewCubit>().toggle(state.moments[index].id),
+                          iframeSrc: _iframeUrl(videoId, moment),
+                          onToggle:
+                              () => context.read<MomentsReviewCubit>().toggle(
+                                moment.id,
+                              ),
                           buildIframe: _buildIframe,
                         );
                       },
@@ -172,14 +232,79 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                   },
                 ),
               ),
-              _BottomBar(
-                selectedCount: state.selected.length,
-                totalCount: state.moments.length,
-                onGenerate: _generate,
-              ),
             ],
           );
         },
+      ),
+      bottomNavigationBar: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
+        builder: (context, state) {
+          return _BottomBar(
+            selectedCount: state.selected.length,
+            totalCount: state.moments.length,
+            generateText: _generateText(state.selected.length),
+            selectedInfoText: _selectedInfoText(
+              state.selected.length,
+              state.moments.length,
+            ),
+            onGenerate: _generate,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SelectionSummaryBar extends StatelessWidget {
+  const _SelectionSummaryBar({
+    required this.selectedCount,
+    required this.totalCount,
+    required this.selectedInfoText,
+    required this.allSelected,
+    required this.onToggleAll,
+  });
+
+  final int selectedCount;
+  final int totalCount;
+  final String selectedInfoText;
+  final bool allSelected;
+  final VoidCallback onToggleAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(
+          bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35)),
+        ),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Chip(
+            avatar: Icon(Icons.checklist_rounded, size: 18, color: cs.primary),
+            label: Text(selectedInfoText),
+          ),
+          OutlinedButton.icon(
+            onPressed: totalCount == 0 ? null : onToggleAll,
+            icon: Icon(allSelected ? Icons.clear_all : Icons.done_all),
+            label: Text(
+              allSelected ? t.review.deselectAll : t.review.selectAll,
+            ),
+          ),
+          if (selectedCount < 1)
+            Text(
+              t.review.minSelectionError,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+        ],
       ),
     );
   }
@@ -208,19 +333,27 @@ class _MomentCard extends StatefulWidget {
 
 class _MomentCardState extends State<_MomentCard> {
   bool _showPreview = false;
+  bool _expandedPostText = false;
 
   @override
   Widget build(BuildContext context) {
     final frameId = 'yt_${widget.moment.id}';
+    final cs = Theme.of(context).colorScheme;
+    final durationSec = (widget.moment.endSec - widget.moment.startSec)
+        .toStringAsFixed(0);
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      elevation: widget.selected ? 4 : 1,
+      elevation: widget.selected ? 3 : 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: widget.selected
-            ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
-            : BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color:
+              widget.selected
+                  ? cs.primary
+                  : cs.outlineVariant.withValues(alpha: 0.55),
+          width: widget.selected ? 2 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -229,11 +362,12 @@ class _MomentCardState extends State<_MomentCard> {
           AspectRatio(
             aspectRatio: 16 / 9,
             child: Stack(
+              fit: StackFit.expand,
               children: [
                 if (_showPreview)
                   widget.buildIframe(frameId, widget.iframeSrc)
                 else
-                  GestureDetector(
+                  InkWell(
                     onTap: () => setState(() => _showPreview = true),
                     child: Stack(
                       fit: StackFit.expand,
@@ -241,70 +375,160 @@ class _MomentCardState extends State<_MomentCard> {
                         Image.network(
                           'https://img.youtube.com/vi/${widget.videoId}/0.jpg',
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.black,
-                            child: const Center(
-                              child: Icon(Icons.video_library, color: Colors.white24, size: 48),
-                            ),
-                          ),
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                color: Colors.black,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.video_library,
+                                    color: Colors.white24,
+                                    size: 48,
+                                  ),
+                                ),
+                              ),
                         ),
-                        Container(color: Colors.black26),
-                        const Center(
-                          child: Icon(Icons.play_circle_fill, size: 64, color: Colors.white),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '${widget.moment.startSec.toStringAsFixed(0)}s',
-                              style: const TextStyle(color: Colors.white, fontSize: 11),
-                            ),
+                        Container(
+                          color: Colors.black45,
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.play_circle_fill,
+                                size: 66,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                t.review.tapToLoadPreview,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: IconButton.filled(
+                    style: IconButton.styleFrom(
+                      backgroundColor:
+                          widget.selected ? cs.primary : cs.surface,
+                      foregroundColor:
+                          widget.selected ? cs.onPrimary : cs.onSurface,
+                      minimumSize: const Size(44, 44),
+                    ),
+                    onPressed: widget.onToggle,
+                    icon: Icon(widget.selected ? Icons.check : Icons.add),
+                    tooltip:
+                        widget.selected
+                            ? t.review.deselectMoment
+                            : t.review.selectMoment,
+                  ),
+                ),
+                Positioned(
+                  left: 10,
+                  bottom: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${widget.moment.startSec.toStringAsFixed(0)}s → ${widget.moment.endSec.toStringAsFixed(0)}s',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: Colors.white),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          InkWell(
-            onTap: widget.onToggle,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.moment.caption,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${(widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0)}s clip',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.moment.caption,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _MetaChip(
+                      icon: Icons.timer_outlined,
+                      text: '$durationSec s',
+                    ),
+                    _MetaChip(
+                      icon: Icons.content_cut,
+                      text: t.review.clipDuration.replaceFirst(
+                        '{duration}',
+                        durationSec,
                       ),
-                      _SelectionBadge(selected: widget.selected, onTap: widget.onToggle),
-                    ],
+                    ),
+                    if (widget.selected)
+                      _MetaChip(
+                        icon: Icons.check_circle,
+                        text: t.review.selected,
+                        highlighted: true,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 170),
+                  crossFadeState:
+                      _expandedPostText
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                  firstChild: Text(
+                    widget.moment.postText,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(widget.moment.postText, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
+                  secondChild: Text(
+                    widget.moment.postText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed:
+                        () => setState(
+                          () => _expandedPostText = !_expandedPostText,
+                        ),
+                    child: Text(
+                      _expandedPostText ? t.review.showLess : t.review.showMore,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -313,48 +537,44 @@ class _MomentCardState extends State<_MomentCard> {
   }
 }
 
-class _SelectionBadge extends StatelessWidget {
-  const _SelectionBadge({required this.selected, required this.onTap});
-  final bool selected;
-  final VoidCallback onTap;
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({
+    required this.icon,
+    required this.text,
+    this.highlighted = false,
+  });
+
+  final IconData icon;
+  final String text;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
-    final badge = GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 44,
-        height: 44,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: selected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: selected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outline,
-                width: 2,
-              ),
-            ),
-            child: Icon(
-              selected ? Icons.check : Icons.add,
-              size: 20,
-              color: selected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Theme.of(context).colorScheme.onSurface,
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: highlighted ? cs.primaryContainer : cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: highlighted ? cs.onPrimaryContainer : cs.onSurfaceVariant,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: highlighted ? cs.onPrimaryContainer : cs.onSurfaceVariant,
             ),
           ),
-        ),
+        ],
       ),
     );
-
-    return badge;
   }
 }
 
@@ -362,29 +582,47 @@ class _BottomBar extends StatelessWidget {
   const _BottomBar({
     required this.selectedCount,
     required this.totalCount,
+    required this.generateText,
+    required this.selectedInfoText,
     required this.onGenerate,
   });
+
   final int selectedCount;
   final int totalCount;
+  final String generateText;
+  final String selectedInfoText;
   final VoidCallback onGenerate;
-  static const int _minMomentsToGenerate = 3;
+  static const int _minMomentsToGenerate = 1;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Row(
+    final cs = Theme.of(context).colorScheme;
+
+    return Material(
+      color: cs.surface,
+      elevation: 8,
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$selectedCount of $totalCount selected',
+              selectedInfoText,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: selectedCount >= _minMomentsToGenerate ? onGenerate : null,
-              icon: const Icon(Icons.auto_awesome),
-              label: Text('Generate $selectedCount Video Posts'),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed:
+                    selectedCount >= _minMomentsToGenerate ? onGenerate : null,
+                icon: const Icon(Icons.auto_awesome),
+                label: Text(
+                  totalCount == 0 ? t.review.generateDisabled : generateText,
+                ),
+              ),
             ),
           ],
         ),

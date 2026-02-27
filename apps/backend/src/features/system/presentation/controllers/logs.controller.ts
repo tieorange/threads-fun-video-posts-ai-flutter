@@ -26,6 +26,53 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value as Record<string, unknown>;
 }
 
+const MAX_LOG_MESSAGE_LENGTH = 2000;
+const MAX_LOG_STACK_LENGTH = 12000;
+const MAX_DATA_DEPTH = 6;
+const MAX_DATA_KEYS = 120;
+const MAX_ARRAY_ITEMS = 40;
+const MAX_STRING_LENGTH = 2000;
+
+function truncateString(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength)}…[truncated ${value.length - maxLength} chars]`;
+}
+
+function sanitizeDataValue(value: unknown, depth: number): unknown {
+  if (depth > MAX_DATA_DEPTH) return '[max_depth_exceeded]';
+
+  if (
+    value === null ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    return truncateString(value, MAX_STRING_LENGTH);
+  }
+
+  if (Array.isArray(value)) {
+    return value.slice(0, MAX_ARRAY_ITEMS).map((item) => sanitizeDataValue(item, depth + 1));
+  }
+
+  if (typeof value === 'object') {
+    const source = value as Record<string, unknown>;
+    const entries = Object.entries(source).slice(0, MAX_DATA_KEYS);
+    const result: Record<string, unknown> = {};
+    for (const [key, item] of entries) {
+      result[key] = sanitizeDataValue(item, depth + 1);
+    }
+    if (Object.keys(source).length > MAX_DATA_KEYS) {
+      result['_truncatedKeys'] = Object.keys(source).length - MAX_DATA_KEYS;
+    }
+    return result;
+  }
+
+  return String(value);
+}
+
 function hasValue<T extends string>(options: readonly T[], value: string): value is T {
   return options.includes(value as T);
 }
@@ -45,7 +92,7 @@ export class LogsController {
       const endpoint = asString(body['endpoint']) ?? asString(body['route']);
       const stack = asString(body['stack']);
       const durationMs = asNumber(body['durationMs']);
-      const data = asRecord(body['data']);
+      const rawData = asRecord(body['data']);
 
       if (!levelRaw || !event || !message || !layerRaw) {
         res.status(400).json({ error: 'Missing required log fields: level, event, message, layer' });
@@ -61,6 +108,7 @@ export class LogsController {
       }
 
       const feature = featureRaw === 'core' ? 'core' : 'video_processing';
+      const sanitizedData = rawData ? (sanitizeDataValue(rawData, 0) as Record<string, unknown>) : undefined;
       const context = {
         app: 'frontend' as const,
         layer: layerRaw,
@@ -68,23 +116,24 @@ export class LogsController {
         requestId,
         jobId,
         endpoint,
-        data,
-        stack,
+        data: sanitizedData,
+        stack: stack ? truncateString(stack, MAX_LOG_STACK_LENGTH) : undefined,
         durationMs,
       };
+      const safeMessage = truncateString(message, MAX_LOG_MESSAGE_LENGTH);
 
       switch (levelRaw) {
         case 'debug':
-          logger.debug(event, message, context);
+          logger.debug(event, safeMessage, context);
           break;
         case 'info':
-          logger.info(event, message, context);
+          logger.info(event, safeMessage, context);
           break;
         case 'warn':
-          logger.warn(event, message, context);
+          logger.warn(event, safeMessage, context);
           break;
         case 'error':
-          logger.error(event, message, context);
+          logger.error(event, safeMessage, context);
           break;
       }
 

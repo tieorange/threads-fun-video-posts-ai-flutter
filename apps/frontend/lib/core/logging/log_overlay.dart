@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/di/injection.dart';
 import '../logging/log_exporter.dart';
+import 'log_overlay_controller.dart';
 
 class LogOverlay extends StatefulWidget {
   const LogOverlay({super.key, required this.child});
@@ -13,54 +14,57 @@ class LogOverlay extends StatefulWidget {
 }
 
 class _LogOverlayState extends State<LogOverlay> {
-  bool _isVisible = false;
+  bool _copied = false;
 
-  void _toggleOverlay() {
+  Future<void> _copyLogs() async {
+    final exporter = sl<LogExporter>();
+    await Clipboard.setData(ClipboardData(text: exporter.buildAiBundle()));
+    if (!mounted) return;
     setState(() {
-      _isVisible = !_isVisible;
+      _copied = true;
+    });
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() {
+        _copied = false;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = sl<LogOverlayController>();
+
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Stack(
         children: [
           widget.child,
-          if (_isVisible)
-            Positioned.fill(
-              child: Material(
-                color: Colors.black.withValues(alpha: 0.85),
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      Expanded(child: _buildLogView()),
-                    ],
+          ValueListenableBuilder<bool>(
+            valueListenable: controller.isVisible,
+            builder: (context, isVisible, _) {
+              if (!isVisible) return const SizedBox.shrink();
+              return Positioned.fill(
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.85),
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        _buildHeader(controller),
+                        Expanded(child: _buildLogView()),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: Material(
-              type: MaterialType.transparency,
-              child: FloatingActionButton(
-                mini: true,
-                backgroundColor: _isVisible ? Colors.red : Colors.blue,
-                onPressed: _toggleOverlay,
-                child: Icon(_isVisible ? Icons.close : Icons.bug_report),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(LogOverlayController controller) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.blueGrey.shade900,
@@ -70,23 +74,21 @@ class _LogOverlayState extends State<LogOverlay> {
             'App Logs',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
+          if (_copied) ...[
+            const SizedBox(width: 8),
+            const Text(
+              'Copied',
+              style: TextStyle(color: Colors.greenAccent, fontSize: 12),
+            ),
+          ],
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.copy, color: Colors.white),
-            onPressed: () {
-              final exporter = sl<LogExporter>();
-              Clipboard.setData(ClipboardData(text: exporter.buildAiBundle()));
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Logs copied to clipboard')));
-            },
+            onPressed: _copyLogs,
           ),
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.white),
-            onPressed: () {
-              // Note: LogBuffer clearing isn't directly exposed here,
-              // but we could add it if needed.
-            },
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: controller.close,
           ),
         ],
       ),
@@ -103,7 +105,11 @@ class _LogOverlayState extends State<LogOverlay> {
       child: SingleChildScrollView(
         child: Text(
           logs,
-          style: const TextStyle(color: Colors.greenAccent, fontFamily: 'monospace', fontSize: 10),
+          style: const TextStyle(
+            color: Colors.greenAccent,
+            fontFamily: 'monospace',
+            fontSize: 10,
+          ),
         ),
       ),
     );

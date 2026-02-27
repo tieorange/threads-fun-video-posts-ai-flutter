@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import '../cubits/chat_flow_cubit.dart';
 import '../../../../../i18n/strings.g.dart';
 
@@ -28,12 +29,62 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   final _jsonFocusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    _urlController.addListener(_onInputChanged);
+    _jsonController.addListener(_onInputChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (widget.currentStep == ChatStep.welcome) {
+        _urlFocusNode.requestFocus();
+      } else if (widget.currentStep == ChatStep.jsonInput) {
+        _jsonFocusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _urlController.removeListener(_onInputChanged);
+    _jsonController.removeListener(_onInputChanged);
     _urlController.dispose();
     _jsonController.dispose();
     _urlFocusNode.dispose();
     _jsonFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onInputChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatInputArea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentStep != oldWidget.currentStep) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        switch (widget.currentStep) {
+          case ChatStep.welcome:
+            _urlFocusNode.requestFocus();
+            break;
+          case ChatStep.jsonInput:
+            _jsonFocusNode.requestFocus();
+            break;
+          case ChatStep.languageSelection:
+          case ChatStep.analyzing:
+          case ChatStep.metadata:
+          case ChatStep.buildingPrompt:
+          case ChatStep.promptReady:
+          case ChatStep.validating:
+          case ChatStep.completed:
+            FocusScope.of(context).unfocus();
+            break;
+        }
+      });
+    }
   }
 
   void _submitUrl() {
@@ -69,9 +120,12 @@ class _ChatInputAreaState extends State<ChatInputArea> {
 
   Widget _buildUrlInput(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomSafe = mediaQuery.padding.bottom;
+    final isSendEnabled = _urlController.text.trim().isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -80,48 +134,58 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           ),
         ),
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _urlController,
-                focusNode: _urlFocusNode,
-                decoration: InputDecoration(
-                  hintText: t.chat.urlHint,
-                  prefixIcon: const Icon(Icons.link),
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _urlController,
+              focusNode: _urlFocusNode,
+              onTapOutside: (_) => _urlFocusNode.unfocus(),
+              decoration: InputDecoration(
+                hintText: t.chat.urlHint,
+                prefixIcon: const Icon(Icons.link),
+                filled: true,
+                fillColor: colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
                 ),
-                keyboardType: TextInputType.url,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _submitUrl(),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
               ),
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.send,
+              textCapitalization: TextCapitalization.none,
+              autocorrect: false,
+              enableSuggestions: false,
+              onSubmitted: (_) => _submitUrl(),
             ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: _submitUrl,
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: IconButton.filled(
+              onPressed: isSendEnabled ? _submitUrl : null,
               icon: const Icon(Icons.send),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildJsonInput(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomSafe = mediaQuery.padding.bottom;
+    final isValidateEnabled = _jsonController.text.trim().isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -130,58 +194,67 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           ),
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _jsonController,
-              focusNode: _jsonFocusNode,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: t.chat.jsonHint,
-                alignLabelWithHint: true,
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _jsonController,
+            focusNode: _jsonFocusNode,
+            onTapOutside: (_) => _jsonFocusNode.unfocus(),
+            minLines: 3,
+            maxLines: 6,
+            textInputAction: TextInputAction.newline,
+            decoration: InputDecoration(
+              hintText: t.chat.jsonHint,
+              alignLabelWithHint: true,
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
               ),
-              style: const TextStyle(
-                fontFamily: 'monospace',
+              contentPadding: const EdgeInsets.all(16),
+            ),
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 13,
+              height: 1.35,
+            ),
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            enableSuggestions: false,
+          ),
+          if (widget.errorMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              widget.errorMessage!,
+              style: TextStyle(
+                color: colorScheme.error,
                 fontSize: 13,
               ),
             ),
-            if (widget.errorMessage != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                widget.errorMessage!,
-                style: TextStyle(
-                  color: colorScheme.error,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: _submitJson,
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: isValidateEnabled ? _submitJson : null,
               icon: const Icon(Icons.check),
               label: Text(t.paste.validate),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDisabledInput(BuildContext context, String message) {
     final colorScheme = Theme.of(context).colorScheme;
+    final bottomSafe = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -190,26 +263,24 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           ),
         ),
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: colorScheme.primary,
-              ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.primary,
             ),
-            const SizedBox(width: 12),
-            Text(
-              message,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            message,
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

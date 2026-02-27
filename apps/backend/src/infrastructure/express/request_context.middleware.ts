@@ -22,6 +22,7 @@ export function requestContextMiddleware(
       ? 'x-client-request-id'
       : 'generated';
   const endpoint = `${req.method} ${req.path}`;
+  const isFrontendRelayEndpoint = req.path === '/api/v1/system/logs';
 
   res.setHeader('x-request-id', requestId);
   res.setHeader('x-correlation-id', requestId);
@@ -29,20 +30,23 @@ export function requestContextMiddleware(
   const start = Date.now();
 
   asyncLocalStorage.run({ requestId, endpoint }, () => {
-    logger.info('request_started', `${req.method} ${req.path}`, {
-      layer: 'infrastructure',
-      feature: 'core',
-      data: {
-        method: req.method,
-        path: req.path,
-        query: req.query as Record<string, unknown>,
-        userAgent: req.headers['user-agent'],
-        requestIdSource,
-        clientRequestId,
-      },
-    });
+    if (!isFrontendRelayEndpoint) {
+      logger.info('request_started', `${req.method} ${req.path}`, {
+        layer: 'infrastructure',
+        feature: 'core',
+        data: {
+          method: req.method,
+          path: req.path,
+          query: req.query as Record<string, unknown>,
+          userAgent: req.headers['user-agent'],
+          requestIdSource,
+          clientRequestId,
+        },
+      });
+    }
 
     res.on('finish', () => {
+      if (isFrontendRelayEndpoint) return;
       const durationMs = Date.now() - start;
       const level =
         res.statusCode >= 500

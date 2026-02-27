@@ -17,9 +17,21 @@ class ValidateAndParseJsonUseCase {
       }
 
       final errors = <String>[];
+      final normalizedPayload = Map<String, dynamic>.from(decoded);
 
-      if (decoded['videoTitle'] == null) errors.add('Missing "videoTitle"');
-      if (decoded['language'] == null) errors.add('Missing "language"');
+      final videoTitle = _asNonEmptyString(decoded['videoTitle']);
+      if (videoTitle == null) {
+        errors.add('Missing "videoTitle"');
+      } else {
+        normalizedPayload['videoTitle'] = videoTitle;
+      }
+
+      final language = _asNonEmptyString(decoded['language']);
+      if (language == null) {
+        errors.add('Missing "language"');
+      } else {
+        normalizedPayload['language'] = language;
+      }
 
       final moments = decoded['moments'];
       if (moments == null) {
@@ -27,38 +39,93 @@ class ValidateAndParseJsonUseCase {
       } else if (moments is! List) {
         errors.add('"moments" must be an array');
       } else if (moments.length > 10) {
-        errors.add('"moments" must contain at most 10 items (got ${moments.length})');
+        errors.add(
+          '"moments" must contain at most 10 items (got ${moments.length})',
+        );
       } else {
+        final normalizedMoments = <Map<String, dynamic>>[];
         for (var i = 0; i < moments.length; i++) {
           final m = moments[i];
           if (m is! Map) {
             errors.add('Moment $i is not an object');
             continue;
           }
-          for (final field in ['id', 'caption', 'postText', 'reason']) {
-            if (m[field] == null) {
-              errors.add('Moment $i missing "$field"');
-            } else if (m[field] is! String) {
-              errors.add('Moment $i "$field" must be a string');
-            }
+
+          final map = Map<String, dynamic>.from(m);
+          final id = _asNonEmptyString(map['id']) ?? 'm${i + 1}';
+          final caption = _firstNonEmptyString([
+            map['caption'],
+            map['title'],
+            map['hook'],
+          ]);
+          final postText = _firstNonEmptyString([
+            map['postText'],
+            map['socialPost'],
+            map['post'],
+            map['text'],
+          ]);
+          final reason = _firstNonEmptyString([
+            map['reason'],
+            map['why'],
+            map['explanation'],
+          ]);
+
+          final start = map['startSec'];
+          final end = map['endSec'];
+
+          if (caption == null) errors.add('Moment $i missing "caption"');
+          if (postText == null) errors.add('Moment $i missing "postText"');
+          if (reason == null) errors.add('Moment $i missing "reason"');
+          if (start == null) {
+            errors.add('Moment $i missing "startSec"');
+          } else if (start is! num) {
+            errors.add('Moment $i "startSec" must be a number');
           }
-          for (final field in ['startSec', 'endSec']) {
-            if (m[field] == null) {
-              errors.add('Moment $i missing "$field"');
-            } else if (m[field] is! num) {
-              errors.add('Moment $i "$field" must be a number');
-            }
+          if (end == null) {
+            errors.add('Moment $i missing "endSec"');
+          } else if (end is! num) {
+            errors.add('Moment $i "endSec" must be a number');
+          }
+
+          if (caption != null &&
+              postText != null &&
+              reason != null &&
+              start is num &&
+              end is num) {
+            normalizedMoments.add({
+              'id': id,
+              'caption': caption,
+              'postText': postText,
+              'reason': reason,
+              'startSec': start,
+              'endSec': end,
+            });
           }
         }
+        normalizedPayload['moments'] = normalizedMoments;
       }
 
       if (errors.isNotEmpty) {
         return left(ValidationFailure(errors.join('\n')));
       }
 
-      return right(decoded);
+      return right(normalizedPayload);
     } on FormatException catch (e) {
       return left(ValidationFailure('Invalid JSON: ${e.message}'));
     }
+  }
+
+  String? _asNonEmptyString(dynamic value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  String? _firstNonEmptyString(List<dynamic> values) {
+    for (final value in values) {
+      final normalized = _asNonEmptyString(value);
+      if (normalized != null) return normalized;
+    }
+    return null;
   }
 }
