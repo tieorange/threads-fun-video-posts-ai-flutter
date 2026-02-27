@@ -92,7 +92,7 @@ void main() {
 
   initCubits();
   final app = MultiBlocProvider(
-    providers: [BlocProvider(create: (_) => sl<ThemeCubit>())],
+    providers: [BlocProvider.value(value: sl<ThemeCubit>())],
     child: TranslationProvider(child: const FunnyThreadsApp()),
   );
 

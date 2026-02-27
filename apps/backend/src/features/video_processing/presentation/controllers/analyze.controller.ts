@@ -5,18 +5,21 @@ import { AppError } from '../../../../core/errors/app_error';
 import { logger } from '../../../../core/logging/logger';
 
 export class AnalyzeController {
-  constructor(private readonly analyzeVideoUseCase: AnalyzeVideoUseCase) {}
+  constructor(private readonly analyzeVideoUseCase: AnalyzeVideoUseCase) { }
 
   handle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const parseResult = AnalyzeRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
+        const issues = parseResult.error.issues;
         logger.warn('analyze_dto_invalid', 'DTO validation failed', {
           layer: 'presentation',
-          data: { issues: parseResult.error.issues },
+          data: { issues },
         });
-        throw new AppError('INVALID_URL', 'Invalid request body.', 400, {
-          issues: parseResult.error.issues,
+
+        const firstIssue = issues[0]?.message ?? 'Invalid request body.';
+        throw new AppError('INVALID_URL', firstIssue, 400, {
+          issues,
         });
       }
 

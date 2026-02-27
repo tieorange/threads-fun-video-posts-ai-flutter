@@ -1,6 +1,5 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
@@ -8,6 +7,7 @@ import '../../domain/entities/clip_artifact.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/utils/clipboard_service.dart';
 import '../../../../../core/utils/launch_service.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
 import '../../../../../i18n/strings.g.dart';
@@ -19,9 +19,7 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<ProcessCubit>().state;
     if (state is! ProcessDone) {
-      return const AppShellScaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const AppShellScaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final jobStatus = state.jobStatus;
@@ -45,40 +43,33 @@ class ResultsPage extends StatelessWidget {
           },
         ),
       ],
-      body:
-          jobStatus.clips.isEmpty
-              ? Center(child: Text(t.results.noClips))
-              : LayoutBuilder(
-                builder: (context, constraints) {
-                  final compact = constraints.maxWidth < 640;
-                  final horizontalPadding = compact ? 16.0 : 48.0;
+      body: jobStatus.clips.isEmpty
+          ? Center(child: Text(t.results.noClips))
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 640;
+                final horizontalPadding = compact ? 16.0 : 48.0;
 
-                  return Column(
-                    children: [
-                      _ResultsSummary(clipsCount: jobStatus.clips.length),
-                      Expanded(
-                        child: ListView.separated(
-                          padding: EdgeInsets.fromLTRB(
-                            horizontalPadding,
-                            12,
-                            horizontalPadding,
-                            24,
-                          ),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: jobStatus.clips.length,
-                          separatorBuilder:
-                              (_, __) => const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final clip = jobStatus.clips[index];
-                            final moment = moments[clip.momentId];
-                            return _ClipCard(clip: clip, moment: moment);
-                          },
-                        ),
+                return Column(
+                  children: [
+                    _ResultsSummary(clipsCount: jobStatus.clips.length),
+                    Expanded(
+                      child: ListView.separated(
+                        padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 24),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: jobStatus.clips.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final clip = jobStatus.clips[index];
+                          final moment = moments[clip.momentId];
+                          return _ClipCard(clip: clip, moment: moment);
+                        },
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              },
+            ),
     );
   }
 }
@@ -96,32 +87,19 @@ class _ResultsSummary extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: BoxDecoration(
         color: cs.surface,
-        border: Border(
-          bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35)),
-        ),
+        border: Border(bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35))),
       ),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         children: [
           Chip(
-            avatar: Icon(
-              Icons.video_collection_outlined,
-              size: 18,
-              color: cs.primary,
-            ),
-            label: Text(
-              t.results.clipsReady.replaceFirst(
-                '{count}',
-                clipsCount.toString(),
-              ),
-            ),
+            avatar: Icon(Icons.video_collection_outlined, size: 18, color: cs.primary),
+            label: Text(t.results.clipsReady.replaceFirst('{count}', clipsCount.toString())),
           ),
           Text(
             t.results.downloadHint,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
       ),
@@ -220,11 +198,9 @@ class _ClipCardState extends State<_ClipCard> {
 
   Future<void> _copyPostText() async {
     final text = widget.moment?.postText ?? '';
-    await Clipboard.setData(ClipboardData(text: text));
+    await sl<ClipboardService>().copy(text);
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(t.results.postTextCopied)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.results.postTextCopied)));
     }
   }
 
@@ -245,39 +221,32 @@ class _ClipCardState extends State<_ClipCard> {
         children: [
           AspectRatio(
             aspectRatio: 16 / 9,
-            child:
-                _showPlayer && _playerReady && _chewie != null
-                    ? Chewie(controller: _chewie!)
-                    : InkWell(
-                      onTap: _initPlayer,
-                      child: ColoredBox(
-                        color: cs.surfaceContainerHighest,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_loadingPlayer)
-                              const SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            else
-                              Icon(
-                                Icons.play_circle_outline,
-                                size: 60,
-                                color: cs.primary,
-                              ),
-                            const SizedBox(height: 10),
-                            Text(
-                              t.results.tapToPreview,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
+            child: _showPlayer && _playerReady && _chewie != null
+                ? Chewie(controller: _chewie!)
+                : InkWell(
+                    onTap: _initPlayer,
+                    child: ColoredBox(
+                      color: cs.surfaceContainerHighest,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_loadingPlayer)
+                            const SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(strokeWidth: 2.5),
+                            )
+                          else
+                            Icon(Icons.play_circle_outline, size: 60, color: cs.primary),
+                          const SizedBox(height: 10),
+                          Text(
+                            t.results.tapToPreview,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
                       ),
                     ),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(14),
@@ -287,9 +256,9 @@ class _ClipCardState extends State<_ClipCard> {
                 if (moment != null) ...[
                   SelectableText(
                     moment.caption,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
@@ -303,8 +272,7 @@ class _ClipCardState extends State<_ClipCard> {
                       ),
                       _ClipMetaChip(
                         icon: Icons.timer,
-                        text:
-                            '${(moment.endSec - moment.startSec).toStringAsFixed(0)} s',
+                        text: '${(moment.endSec - moment.startSec).toStringAsFixed(0)} s',
                       ),
                     ],
                   ),
@@ -405,9 +373,7 @@ class _ClipMetaChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
       ),

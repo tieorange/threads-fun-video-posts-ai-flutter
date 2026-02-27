@@ -28,16 +28,23 @@ class _LogOverlayState extends State<LogOverlay> {
             children: [
               widget.child,
               Positioned.fill(
-                child: Material(
-                  color: Colors.black.withValues(alpha: 0.85),
-                  child: SafeArea(
-                    child: Column(
-                      children: [
-                        _buildHeader(context, controller),
-                        Expanded(child: _buildLogView()),
-                      ],
+                child: Overlay(
+                  initialEntries: [
+                    OverlayEntry(
+                      builder:
+                          (context) => Material(
+                            color: Colors.black.withValues(alpha: 0.85),
+                            child: SafeArea(
+                              child: Column(
+                                children: [
+                                  _buildHeader(context, controller),
+                                  Expanded(child: _buildLogView()),
+                                ],
+                              ),
+                            ),
+                          ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
