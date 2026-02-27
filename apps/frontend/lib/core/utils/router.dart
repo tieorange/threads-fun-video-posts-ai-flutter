@@ -22,40 +22,46 @@ void _logRoute(String path) {
   log.info('route_enter', 'Navigated to $path', layer: AppLayer.presentation);
 }
 
-// Shared cubit instances that persist across route transitions
-late final AnalyzeCubit _analyzeCubit;
-late final PromptCubit _promptCubit;
-late final JsonPasteCubit _jsonPasteCubit;
-late final MomentsReviewCubit _reviewCubit;
-late final ProcessCubit _processCubit;
-late final ChatFlowCubit _chatFlowCubit;
-
+// Global cubit access via sl() instead of late final wrappers
 void initCubits() {
-  _analyzeCubit = sl<AnalyzeCubit>();
-  _promptCubit = sl<PromptCubit>();
-  _jsonPasteCubit = sl<JsonPasteCubit>();
-  _reviewCubit = sl<MomentsReviewCubit>();
-  _processCubit = sl<ProcessCubit>();
-  _chatFlowCubit = sl<ChatFlowCubit>();
+  // Just pre-initialize ChatFlowCubit to trigger restoration
+  sl<ChatFlowCubit>();
 }
-
-// Extra data passed via GoRouter for the review page
-// Data is extracted from state.extra or cubit states during build.
 
 Widget _withProviders(Widget child) => MultiBlocProvider(
   providers: [
-    BlocProvider.value(value: _analyzeCubit),
-    BlocProvider.value(value: _promptCubit),
-    BlocProvider.value(value: _jsonPasteCubit),
-    BlocProvider.value(value: _reviewCubit),
-    BlocProvider.value(value: _processCubit),
-    BlocProvider.value(value: _chatFlowCubit),
+    BlocProvider.value(value: sl<AnalyzeCubit>()),
+    BlocProvider.value(value: sl<PromptCubit>()),
+    BlocProvider.value(value: sl<JsonPasteCubit>()),
+    BlocProvider.value(value: sl<MomentsReviewCubit>()),
+    BlocProvider.value(value: sl<ProcessCubit>()),
+    BlocProvider.value(value: sl<ChatFlowCubit>()),
   ],
   child: child,
 );
 
 final appRouter = GoRouter(
   initialLocation: '/',
+  redirect: (context, state) {
+    final chatFlow = sl<ChatFlowCubit>();
+    final chatState = chatFlow.state;
+    final path = state.uri.path;
+
+    // Guard: /review requires completed state
+    if (path == '/review' && chatState is! ChatFlowCompleted) {
+      // If we are still in a transient state or initial, redirect to home
+      // But wait! If we just started, ChatFlowCubit might be restoring.
+      // However, restoreState is called in constructor and is synchronous for localStorage.
+      return '/';
+    }
+
+    // Guard: /processing and /results require active process
+    if ((path == '/processing' || path == '/results') && sl<ProcessCubit>().state is ProcessIdle) {
+      return '/';
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/',
@@ -75,30 +81,16 @@ final appRouter = GoRouter(
       path: '/review',
       builder: (context, state) {
         _logRoute('/review');
-        
-        // Primary: Get data from ChatFlowCubit completed state
-        final chatState = _chatFlowCubit.state;
+
+        final chatState = sl<ChatFlowCubit>().state;
         if (chatState is ChatFlowCompleted) {
-          return _withProviders(MomentsReviewPage(
-            youtubeUrl: chatState.youtubeUrl,
-            aiPayload: chatState.aiPayload,
-          ));
+          return _withProviders(
+            MomentsReviewPage(youtubeUrl: chatState.youtubeUrl, aiPayload: chatState.aiPayload),
+          );
         }
-        
-        // Fallback: Try extra params (for direct navigation)
-        final extra = state.extra as Map<String, dynamic>?;
-        if (extra != null) {
-          return _withProviders(MomentsReviewPage(
-            youtubeUrl: extra['youtubeUrl'] as String,
-            aiPayload: extra['aiPayload'] as Map<String, dynamic>,
-          ));
-        }
-        
-        // Guard: Missing data, redirect to start
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.go('/');
-        });
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+        // This fallback should rarely be hit due to redirect guard
+        return _withProviders(const ChatFlowPage());
       },
     ),
     GoRoute(

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'analyze_cubit.dart';
 import 'prompt_cubit.dart';
 import 'json_paste_cubit.dart';
+import '../../data/datasources/chat_local_storage_datasource.dart';
 import 'moments_review_cubit.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../../domain/entities/job_status.dart';
@@ -14,10 +15,14 @@ import '../../../../../core/logging/logger.dart';
 part 'process_state.dart';
 
 class ProcessCubit extends Cubit<ProcessState> {
-  ProcessCubit(this._submitProcess, this._pollStatus, this._log) : super(const ProcessIdle());
+  ProcessCubit(this._submitProcess, this._pollStatus, this._storage, this._log)
+    : super(const ProcessIdle()) {
+    _restoreState();
+  }
 
   final SubmitProcessUseCase _submitProcess;
   final PollJobStatusUseCase _pollStatus;
+  final ChatLocalStorageDatasource _storage;
   final AppLogger _log;
 
   bool _isDisposed = false;
@@ -52,10 +57,27 @@ class ProcessCubit extends Cubit<ProcessState> {
           jobId: jobId,
         );
         _log.setJobId(jobId);
+        _storage.saveJob(jobId: jobId, moments: _moments, youtubeUrl: youtubeUrl);
         emit(ProcessRunning(jobId: jobId, progress: 0));
         _startPolling(jobId);
       },
     );
+  }
+
+  void _restoreState() {
+    final jobData = _storage.loadJob();
+    if (jobData != null) {
+      _log.info(
+        'process_restored',
+        'Restoring active job from persistence',
+        layer: AppLayer.presentation,
+        jobId: jobData.jobId,
+      );
+      _moments = jobData.moments;
+      _log.setJobId(jobData.jobId);
+      emit(ProcessRunning(jobId: jobData.jobId, progress: 0));
+      _startPolling(jobData.jobId);
+    }
   }
 
   Future<void> _startPolling(String jobId) async {

@@ -34,7 +34,9 @@ void setupDependencies() {
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<ClipboardService>(() => ClipboardService());
   sl.registerLazySingleton<LaunchService>(() => LaunchService());
-  sl.registerLazySingleton<ChatLocalStorageDatasource>(() => ChatLocalStorageDatasource(sl<AppLogger>()));
+  sl.registerLazySingleton<ChatLocalStorageDatasource>(
+    () => ChatLocalStorageDatasource(sl<AppLogger>()),
+  );
 
   // Dio
   sl.registerLazySingleton<Dio>(
@@ -61,25 +63,28 @@ void setupDependencies() {
   sl.registerLazySingleton(() => SubmitProcessUseCase(sl<ProcessRepositoryImpl>()));
   sl.registerLazySingleton(() => PollJobStatusUseCase(sl<ProcessRepositoryImpl>()));
 
-  // Cubits (factories — new instance per registration)
-  sl.registerFactory(() => AnalyzeCubit(sl<AnalyzeVideoUseCase>(), sl<AppLogger>()));
-  sl.registerFactory(
+  // Cubits (singletons — shared across routes)
+  sl.registerLazySingleton(() => AnalyzeCubit(sl<AnalyzeVideoUseCase>(), sl<AppLogger>()));
+  sl.registerLazySingleton(
     () => PromptCubit(sl<BuildAiPromptUseCase>(), sl<AppLogger>(), sl<ClipboardService>()),
   );
-  sl.registerFactory(() => JsonPasteCubit(sl<ValidateAndParseJsonUseCase>(), sl<AppLogger>()));
-  sl.registerFactory(() => MomentsReviewCubit(sl<AppLogger>()));
-  sl.registerFactory(
-    () => ProcessCubit(sl<SubmitProcessUseCase>(), sl<PollJobStatusUseCase>(), sl<AppLogger>()),
+  sl.registerLazySingleton(
+    () => JsonPasteCubit(sl<ValidateAndParseJsonUseCase>(), sl<AppLogger>()),
   );
-  
-  // ChatFlowCubit - new instance per app start
-  sl.registerFactory(() => ChatFlowCubit(
-    analyzeVideoUseCase: sl<AnalyzeVideoUseCase>(),
-    buildAiPromptUseCase: sl<BuildAiPromptUseCase>(),
-    validateAndParseJsonUseCase: sl<ValidateAndParseJsonUseCase>(),
-    log: sl<AppLogger>(),
-    clipboard: sl<ClipboardService>(),
-    launchService: sl<LaunchService>(),
-    localStorage: sl<ChatLocalStorageDatasource>(),
-  ));
+  sl.registerLazySingleton(() => MomentsReviewCubit(sl<AppLogger>()));
+  sl.registerLazySingleton(() => ProcessCubit(sl(), sl(), sl(), sl()));
+
+  // ChatFlowCubit - depends on review cubit for state sync
+  sl.registerLazySingleton(
+    () => ChatFlowCubit(
+      analyzeVideoUseCase: sl<AnalyzeVideoUseCase>(),
+      buildAiPromptUseCase: sl<BuildAiPromptUseCase>(),
+      validateAndParseJsonUseCase: sl<ValidateAndParseJsonUseCase>(),
+      log: sl<AppLogger>(),
+      clipboard: sl<ClipboardService>(),
+      launchService: sl<LaunchService>(),
+      localStorage: sl<ChatLocalStorageDatasource>(),
+      reviewCubit: sl<MomentsReviewCubit>(),
+    ),
+  );
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:web/web.dart' as web;
 import '../../../../core/logging/logger.dart';
 import '../../domain/entities/chat_message.dart';
+import '../../domain/entities/funny_moment.dart';
 
 /// Local storage datasource for persisting chat state
 class ChatLocalStorageDatasource {
@@ -10,6 +11,7 @@ class ChatLocalStorageDatasource {
   final AppLogger _logger;
   static const String _storageKey = 'chat_flow_state';
   static const String _messagesKey = 'chat_flow_messages';
+  static const String _jobKey = 'active_job_state';
 
   /// Save chat state to localStorage
   void saveState({
@@ -19,6 +21,8 @@ class ChatLocalStorageDatasource {
     String? language,
     String? youtubeUrl,
     Map<String, dynamic>? aiPayload,
+    Map<String, dynamic>? analyzeResult,
+    String? prompt,
   }) {
     try {
       final stateData = <String, dynamic>{
@@ -27,6 +31,8 @@ class ChatLocalStorageDatasource {
         'language': language,
         'youtubeUrl': youtubeUrl,
         'aiPayload': aiPayload,
+        'analyzeResult': analyzeResult,
+        'prompt': prompt,
         'timestamp': DateTime.now().toIso8601String(),
       };
 
@@ -73,6 +79,8 @@ class ChatLocalStorageDatasource {
         language: stateData['language'] as String?,
         youtubeUrl: stateData['youtubeUrl'] as String?,
         aiPayload: stateData['aiPayload'] as Map<String, dynamic>?,
+        analyzeResult: stateData['analyzeResult'] as Map<String, dynamic>?,
+        prompt: stateData['prompt'] as String?,
       );
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to load chat state: $e');
@@ -87,6 +95,62 @@ class ChatLocalStorageDatasource {
       web.window.localStorage.removeItem(_messagesKey);
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to clear chat state: $e');
+    }
+  }
+
+  /// Save active job to localStorage
+  void saveJob({
+    required String jobId,
+    required List<FunnyMoment> moments,
+    required String youtubeUrl,
+  }) {
+    try {
+      final jobData = {
+        'jobId': jobId,
+        'moments': moments.map((m) => m.toJson()).toList(),
+        'youtubeUrl': youtubeUrl,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      web.window.localStorage.setItem(_jobKey, jsonEncode(jobData));
+    } catch (e) {
+      _logger.error('local_storage_error', 'Failed to save job state: $e');
+    }
+  }
+
+  /// Load active job from localStorage
+  JobPersistenceData? loadJob() {
+    try {
+      final jobJson = web.window.localStorage.getItem(_jobKey);
+      if (jobJson == null) return null;
+
+      final data = jsonDecode(jobJson) as Map<String, dynamic>;
+
+      // Clear job if older than 12 hours
+      final timestamp = DateTime.parse(data['timestamp'] as String);
+      if (DateTime.now().difference(timestamp).inHours > 12) {
+        clearJob();
+        return null;
+      }
+
+      return JobPersistenceData(
+        jobId: data['jobId'] as String,
+        moments: (data['moments'] as List<dynamic>)
+            .map((m) => FunnyMoment.fromJson(m as Map<String, dynamic>))
+            .toList(),
+        youtubeUrl: data['youtubeUrl'] as String,
+      );
+    } catch (e) {
+      _logger.error('local_storage_error', 'Failed to load job state: $e');
+      return null;
+    }
+  }
+
+  /// Clear active job
+  void clearJob() {
+    try {
+      web.window.localStorage.removeItem(_jobKey);
+    } catch (e) {
+      _logger.error('local_storage_error', 'Failed to clear job state: $e');
     }
   }
 
@@ -134,6 +198,8 @@ class ChatPersistenceData {
     this.language,
     this.youtubeUrl,
     this.aiPayload,
+    this.analyzeResult,
+    this.prompt,
   });
 
   final String currentStep;
@@ -142,4 +208,15 @@ class ChatPersistenceData {
   final String? language;
   final String? youtubeUrl;
   final Map<String, dynamic>? aiPayload;
+  final Map<String, dynamic>? analyzeResult;
+  final String? prompt;
+}
+
+/// Data class for persisted job state
+class JobPersistenceData {
+  const JobPersistenceData({required this.jobId, required this.moments, required this.youtubeUrl});
+
+  final String jobId;
+  final List<FunnyMoment> moments;
+  final String youtubeUrl;
 }

@@ -52,6 +52,17 @@ class MomentsReviewCubit extends Cubit<MomentsReviewState> {
     emit(MomentsReviewState(moments: state.moments, selected: const {}));
   }
 
+  void restoreMoments(List<FunnyMoment> moments, Map<String, dynamic> aiPayload) {
+    final allSelected = {for (final m in moments) m.id};
+    _log.info(
+      'moments_restored',
+      'Restored moments from persistence',
+      layer: AppLayer.presentation,
+      data: {'count': moments.length},
+    );
+    emit(MomentsReviewState(moments: moments, selected: allSelected, aiPayload: aiPayload));
+  }
+
   void reset() {
     emit(const MomentsReviewState(moments: [], selected: {}));
   }

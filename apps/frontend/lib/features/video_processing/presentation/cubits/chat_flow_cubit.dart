@@ -13,6 +13,7 @@ import '../../../../../core/logging/logger.dart';
 import '../../../../../core/utils/clipboard_service.dart';
 import '../../../../../core/utils/launch_service.dart';
 import '../../../../../i18n/strings.g.dart';
+import 'moments_review_cubit.dart';
 
 part 'chat_flow_state.dart';
 
@@ -25,14 +26,16 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     required ClipboardService clipboard,
     required LaunchService launchService,
     required ChatLocalStorageDatasource localStorage,
-  })  : _analyzeVideoUseCase = analyzeVideoUseCase,
-        _buildAiPromptUseCase = buildAiPromptUseCase,
-        _validateAndParseJsonUseCase = validateAndParseJsonUseCase,
-        _log = log,
-        _clipboard = clipboard,
-        _launchService = launchService,
-        _localStorage = localStorage,
-        super(_initialState()) {
+    required MomentsReviewCubit reviewCubit,
+  }) : _analyzeVideoUseCase = analyzeVideoUseCase,
+       _buildAiPromptUseCase = buildAiPromptUseCase,
+       _validateAndParseJsonUseCase = validateAndParseJsonUseCase,
+       _log = log,
+       _clipboard = clipboard,
+       _launchService = launchService,
+       _localStorage = localStorage,
+       _reviewCubit = reviewCubit,
+       super(_initialState()) {
     // Try to restore persisted state
     _restoreState();
   }
@@ -44,16 +47,12 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
   final ClipboardService _clipboard;
   final LaunchService _launchService;
   final ChatLocalStorageDatasource _localStorage;
+  final MomentsReviewCubit _reviewCubit;
 
   /// Create initial state with welcome message
   static ChatFlowState _initialState() {
     return ChatFlowInitial(
-      messages: [
-        ChatMessage.bot(
-          text: t.chat.welcomeMessage,
-          timestamp: DateTime.now(),
-        ),
-      ],
+      messages: [ChatMessage.bot(text: t.chat.welcomeMessage, timestamp: DateTime.now())],
     );
   }
 
@@ -69,10 +68,11 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
           data: {'step': persistedData.currentStep, 'messages': persistedData.messages.length},
         );
 
-        // Restore state based on persisted step
         final restoredState = _createStateFromPersistence(persistedData);
-        if (restoredState != null) {
-          emit(restoredState);
+        emit(restoredState);
+
+        if (restoredState is ChatFlowCompleted) {
+          _reviewCubit.restoreMoments(restoredState.moments, restoredState.aiPayload);
         }
       }
     } catch (e) {
@@ -84,66 +84,78 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     }
   }
 
-  /// Create state object from persisted data
-  ChatFlowState? _createStateFromPersistence(ChatPersistenceData data) {
-    return switch (data.currentStep) {
-      'welcome' => ChatFlowInitial(messages: data.messages),
-      'languageSelection' => data.url != null
-          ? ChatFlowLanguageSelection(messages: data.messages, url: data.url!)
-          : null,
-      'analyzing' => (data.url != null && data.language != null)
-          ? ChatFlowAnalyzing(
-              messages: data.messages,
-              url: data.url!,
-              language: data.language!,
-            )
-          : null,
-      // For metadata and beyond, we can't fully restore without analyzeResult
-      // So we go back to language selection
-      'metadata' || 'buildingPrompt' || 'promptReady' || 'jsonInput' => data.url != null
-          ? ChatFlowLanguageSelection(messages: data.messages, url: data.url!)
-          : ChatFlowInitial(messages: data.messages),
-      _ => null,
-    };
+  ChatFlowState _createStateFromPersistence(ChatPersistenceData data) {
+    // 1. Highest priority: Completed state
+    if (data.youtubeUrl != null && data.aiPayload != null) {
+      return ChatFlowCompleted(
+        messages: data.messages,
+        youtubeUrl: data.youtubeUrl!,
+        aiPayload: data.aiPayload!,
+        moments: _parseMoments(data.aiPayload!),
+      );
+    }
+
+    // 2. Mid-flow states with analyzeResult
+    if (data.analyzeResult != null) {
+      try {
+        final res = AnalyzeResult.fromJson(data.analyzeResult!);
+
+        if (data.currentStep == 'ChatFlowPromptReady' && data.prompt != null) {
+          return ChatFlowPromptReady(
+            messages: data.messages,
+            prompt: data.prompt!,
+            analyzeResult: res,
+          );
+        }
+
+        if (data.currentStep == 'ChatFlowMetadata') {
+          return ChatFlowMetadata(
+            messages: data.messages,
+            videoMetadata: res.video,
+            analyzeResult: res,
+          );
+        }
+
+        if (data.currentStep == 'ChatFlowJsonInput' && data.prompt != null) {
+          return ChatFlowJsonInput(
+            messages: data.messages,
+            prompt: data.prompt!,
+            analyzeResult: res,
+          );
+        }
+      } catch (e) {
+        _log.error('persistence_restore_error', 'Failed to restore analyzeResult: $e');
+      }
+    }
+
+    // 3. Early flow: Language selection
+    if (data.url != null) {
+      return ChatFlowLanguageSelection(messages: data.messages, url: data.url!);
+    }
+
+    // 4. Default fallback
+    return _initialState();
   }
 
-  /// Persist current state to localStorage
   void _persistState() {
     try {
-      final currentState = state;
-      String? persistedUrl;
-      String? persistedLanguage;
-      String? persistedYoutubeUrl;
-      Map<String, dynamic>? persistedAiPayload;
-
-      // Extract data based on state type
-      switch (currentState) {
-        case ChatFlowLanguageSelection(:final url):
-          persistedUrl = url;
-        case ChatFlowAnalyzing(:final url, :final language):
-          persistedUrl = url;
-          persistedLanguage = language;
-        case ChatFlowCompleted(:final youtubeUrl, :final aiPayload):
-          persistedYoutubeUrl = youtubeUrl;
-          persistedAiPayload = aiPayload;
-        default:
-          break;
-      }
-
+      final s = state;
       _localStorage.saveState(
-        currentStep: currentState.currentStep.name,
-        messages: currentState.messages,
-        url: persistedUrl,
-        language: persistedLanguage,
-        youtubeUrl: persistedYoutubeUrl,
-        aiPayload: persistedAiPayload,
+        currentStep: s.runtimeType.toString(),
+        messages: s.messages,
+        url: s is ChatFlowLanguageSelection ? s.url : (s is ChatFlowAnalyzing ? s.url : null),
+        language: s is ChatFlowAnalyzing ? s.language : null,
+        youtubeUrl: s is ChatFlowCompleted ? s.youtubeUrl : null,
+        aiPayload: s is ChatFlowCompleted ? s.aiPayload : null,
+        analyzeResult: s is ChatFlowMetadata
+            ? s.analyzeResult.toJson()
+            : (s is ChatFlowPromptReady
+                  ? s.analyzeResult.toJson()
+                  : (s is ChatFlowJsonInput ? s.analyzeResult.toJson() : null)),
+        prompt: s is ChatFlowPromptReady ? s.prompt : (s is ChatFlowJsonInput ? s.prompt : null),
       );
     } catch (e) {
-      _log.error(
-        'chatflow_persist_failed',
-        'Failed to persist chat state: $e',
-        layer: AppLayer.presentation,
-      );
+      _log.error('chatflow_persist_failed', 'Failed to persist chat state: $e');
     }
   }
 
@@ -161,20 +173,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
 
   /// Add a bot message to conversation
   void addBotMessage(String text, {MessageType type = MessageType.text}) {
-    final newMessage = ChatMessage.bot(
-      text: text,
-      timestamp: DateTime.now(),
-      type: type,
-    );
+    final newMessage = ChatMessage.bot(text: text, timestamp: DateTime.now(), type: type);
     emit(_updateStateWithMessages(_addMessage(newMessage)));
   }
 
   /// Add a user message to conversation
   void addUserMessage(String text) {
-    final newMessage = ChatMessage.user(
-      text: text,
-      timestamp: DateTime.now(),
-    );
+    final newMessage = ChatMessage.user(text: text, timestamp: DateTime.now());
     emit(_updateStateWithMessages(_addMessage(newMessage)));
   }
 
@@ -182,39 +187,44 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
   ChatFlowState _updateStateWithMessages(List<ChatMessage> messages) {
     return switch (state) {
       ChatFlowInitial() => ChatFlowInitial(messages: messages),
-      ChatFlowLanguageSelection(:final url) =>
-        ChatFlowLanguageSelection(messages: messages, url: url),
-      ChatFlowAnalyzing(:final url, :final language) =>
-        ChatFlowAnalyzing(messages: messages, url: url, language: language),
-      ChatFlowMetadata(:final videoMetadata, :final analyzeResult) =>
-        ChatFlowMetadata(
-          messages: messages,
-          videoMetadata: videoMetadata,
-          analyzeResult: analyzeResult,
-        ),
-      ChatFlowBuildingPrompt(:final language) =>
-        ChatFlowBuildingPrompt(messages: messages, language: language),
-      ChatFlowPromptReady(:final prompt, :final analyzeResult) =>
-        ChatFlowPromptReady(
-          messages: messages,
-          prompt: prompt,
-          analyzeResult: analyzeResult,
-        ),
-      ChatFlowJsonInput(:final prompt, :final analyzeResult) =>
-        ChatFlowJsonInput(
-          messages: messages,
-          prompt: prompt,
-          analyzeResult: analyzeResult,
-        ),
-      ChatFlowValidating(:final jsonInput) =>
-        ChatFlowValidating(messages: messages, jsonInput: jsonInput),
-      ChatFlowCompleted(:final aiPayload, :final moments, :final youtubeUrl) =>
-        ChatFlowCompleted(
-          messages: messages,
-          aiPayload: aiPayload,
-          moments: moments,
-          youtubeUrl: youtubeUrl,
-        ),
+      ChatFlowLanguageSelection(:final url) => ChatFlowLanguageSelection(
+        messages: messages,
+        url: url,
+      ),
+      ChatFlowAnalyzing(:final url, :final language) => ChatFlowAnalyzing(
+        messages: messages,
+        url: url,
+        language: language,
+      ),
+      ChatFlowMetadata(:final videoMetadata, :final analyzeResult) => ChatFlowMetadata(
+        messages: messages,
+        videoMetadata: videoMetadata,
+        analyzeResult: analyzeResult,
+      ),
+      ChatFlowBuildingPrompt(:final language) => ChatFlowBuildingPrompt(
+        messages: messages,
+        language: language,
+      ),
+      ChatFlowPromptReady(:final prompt, :final analyzeResult) => ChatFlowPromptReady(
+        messages: messages,
+        prompt: prompt,
+        analyzeResult: analyzeResult,
+      ),
+      ChatFlowJsonInput(:final prompt, :final analyzeResult) => ChatFlowJsonInput(
+        messages: messages,
+        prompt: prompt,
+        analyzeResult: analyzeResult,
+      ),
+      ChatFlowValidating(:final jsonInput) => ChatFlowValidating(
+        messages: messages,
+        jsonInput: jsonInput,
+      ),
+      ChatFlowCompleted(:final aiPayload, :final moments, :final youtubeUrl) => ChatFlowCompleted(
+        messages: messages,
+        aiPayload: aiPayload,
+        moments: moments,
+        youtubeUrl: youtubeUrl,
+      ),
       ChatFlowError(:final errorMessage, :final recoverableStep, :final recoverableData) =>
         ChatFlowError(
           messages: messages,
@@ -235,10 +245,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     );
 
     // Add user message
-    final userMessage = ChatMessage.user(
-      text: url,
-      timestamp: DateTime.now(),
-    );
+    final userMessage = ChatMessage.user(text: url, timestamp: DateTime.now());
     final messagesWithUser = _addMessage(userMessage);
 
     // Add language selection prompt
@@ -250,10 +257,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     final messagesWithPrompt = [...messagesWithUser, languagePrompt];
 
     // Emit language selection state
-    emit(ChatFlowLanguageSelection(
-      messages: messagesWithPrompt,
-      url: url,
-    ));
+    emit(ChatFlowLanguageSelection(messages: messagesWithPrompt, url: url));
   }
 
   /// Select language and analyze video
@@ -272,18 +276,11 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
 
     // Add user message for language selection
     final languageLabel = _getLanguageLabel(language);
-    final userMessage = ChatMessage.user(
-      text: languageLabel,
-      timestamp: DateTime.now(),
-    );
+    final userMessage = ChatMessage.user(text: languageLabel, timestamp: DateTime.now());
     final messagesWithUser = [...state.messages, userMessage];
 
     // Emit analyzing state with selected language
-    emit(ChatFlowAnalyzing(
-      messages: messagesWithUser,
-      url: url,
-      language: language,
-    ));
+    emit(ChatFlowAnalyzing(messages: messagesWithUser, url: url, language: language));
 
     // Add loading message
     final loadingMessage = ChatMessage.bot(
@@ -291,11 +288,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       timestamp: DateTime.now(),
       type: MessageType.loading,
     );
-    emit(ChatFlowAnalyzing(
-      messages: [...messagesWithUser, loadingMessage],
-      url: url,
-      language: language,
-    ));
+    emit(
+      ChatFlowAnalyzing(
+        messages: [...messagesWithUser, loadingMessage],
+        url: url,
+        language: language,
+      ),
+    );
 
     // Call analyze use case with selected language
     final result = await _analyzeVideoUseCase(url, language);
@@ -319,12 +318,14 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
           type: MessageType.error,
         );
 
-        emit(ChatFlowError(
-          messages: [...messagesWithoutLoading, errorMessage],
-          errorMessage: failure.message,
-          recoverableStep: ChatStep.languageSelection,
-          recoverableData: {'url': url},
-        ));
+        emit(
+          ChatFlowError(
+            messages: [...messagesWithoutLoading, errorMessage],
+            errorMessage: failure.message,
+            recoverableStep: ChatStep.languageSelection,
+            recoverableData: {'url': url},
+          ),
+        );
       },
       (analyzeResult) {
         _log.info(
@@ -348,11 +349,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
           type: MessageType.videoMetadata,
         );
 
-        emit(ChatFlowMetadata(
-          messages: [...messagesWithoutLoading, metadataMessage],
-          videoMetadata: analyzeResult.video,
-          analyzeResult: analyzeResult,
-        ));
+        emit(
+          ChatFlowMetadata(
+            messages: [...messagesWithoutLoading, metadataMessage],
+            videoMetadata: analyzeResult.video,
+            analyzeResult: analyzeResult,
+          ),
+        );
       },
     );
   }
@@ -372,10 +375,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     );
 
     // Emit building prompt state
-    emit(ChatFlowBuildingPrompt(
-      messages: state.messages,
-      language: language,
-    ));
+    emit(ChatFlowBuildingPrompt(messages: state.messages, language: language));
 
     // Build prompt with the analyze result
     final prompt = _buildAiPromptUseCase(currentState.analyzeResult);
@@ -394,11 +394,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       type: MessageType.aiPrompt,
     );
 
-    emit(ChatFlowPromptReady(
-      messages: [...state.messages, promptMessage],
-      prompt: prompt,
-      analyzeResult: currentState.analyzeResult,
-    ));
+    emit(
+      ChatFlowPromptReady(
+        messages: [...state.messages, promptMessage],
+        prompt: prompt,
+        analyzeResult: currentState.analyzeResult,
+      ),
+    );
   }
 
   /// Copy AI prompt to clipboard
@@ -408,11 +410,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
 
     await _clipboard.copy(currentState.prompt);
 
-    _log.info(
-      'chatflow_prompt_copied',
-      'Prompt copied to clipboard',
-      layer: AppLayer.presentation,
-    );
+    _log.info('chatflow_prompt_copied', 'Prompt copied to clipboard', layer: AppLayer.presentation);
 
     // Add confirmation message
     final confirmationMessage = ChatMessage.bot(
@@ -420,11 +418,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       timestamp: DateTime.now(),
     );
 
-    emit(ChatFlowPromptReady(
-      messages: [...state.messages, confirmationMessage],
-      prompt: currentState.prompt,
-      analyzeResult: currentState.analyzeResult,
-    ));
+    emit(
+      ChatFlowPromptReady(
+        messages: [...state.messages, confirmationMessage],
+        prompt: currentState.prompt,
+        analyzeResult: currentState.analyzeResult,
+      ),
+    );
   }
 
   /// Open external AI tool (ChatGPT, Claude, etc.) in a new tab
@@ -451,11 +451,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       timestamp: DateTime.now(),
     );
 
-    emit(ChatFlowJsonInput(
-      messages: [...state.messages, instructionMessage],
-      prompt: currentState.prompt,
-      analyzeResult: currentState.analyzeResult,
-    ));
+    emit(
+      ChatFlowJsonInput(
+        messages: [...state.messages, instructionMessage],
+        prompt: currentState.prompt,
+        analyzeResult: currentState.analyzeResult,
+      ),
+    );
   }
 
   /// Manually proceed to JSON input without opening external tool
@@ -469,39 +471,29 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       timestamp: DateTime.now(),
     );
 
-    emit(ChatFlowJsonInput(
-      messages: [...state.messages, instructionMessage],
-      prompt: currentState.prompt,
-      analyzeResult: currentState.analyzeResult,
-    ));
+    emit(
+      ChatFlowJsonInput(
+        messages: [...state.messages, instructionMessage],
+        prompt: currentState.prompt,
+        analyzeResult: currentState.analyzeResult,
+      ),
+    );
   }
 
   /// Submit and validate AI JSON response
   Future<void> submitJson(String jsonInput) async {
-    _log.info(
-      'chatflow_json_submitted',
-      'User submitted JSON',
-      layer: AppLayer.presentation,
-    );
+    _log.info('chatflow_json_submitted', 'User submitted JSON', layer: AppLayer.presentation);
 
     final currentState = state;
     if (currentState is! ChatFlowJsonInput) return;
 
     // Add user message (truncated preview)
-    final preview = jsonInput.length > 100
-        ? '${jsonInput.substring(0, 100)}...'
-        : jsonInput;
-    final userMessage = ChatMessage.user(
-      text: preview,
-      timestamp: DateTime.now(),
-    );
+    final preview = jsonInput.length > 100 ? '${jsonInput.substring(0, 100)}...' : jsonInput;
+    final userMessage = ChatMessage.user(text: preview, timestamp: DateTime.now());
     final messagesWithUser = [...state.messages, userMessage];
 
     // Emit validating state
-    emit(ChatFlowValidating(
-      messages: messagesWithUser,
-      jsonInput: jsonInput,
-    ));
+    emit(ChatFlowValidating(messages: messagesWithUser, jsonInput: jsonInput));
 
     // Add loading message
     final loadingMessage = ChatMessage.bot(
@@ -509,21 +501,14 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       timestamp: DateTime.now(),
       type: MessageType.loading,
     );
-    emit(ChatFlowValidating(
-      messages: [...messagesWithUser, loadingMessage],
-      jsonInput: jsonInput,
-    ));
+    emit(ChatFlowValidating(messages: [...messagesWithUser, loadingMessage], jsonInput: jsonInput));
 
     // Validate JSON
     final result = _validateAndParseJsonUseCase(jsonInput);
 
     result.fold(
       (failure) {
-        _log.error(
-          'chatflow_validation_failed',
-          failure.message,
-          layer: AppLayer.presentation,
-        );
+        _log.error('chatflow_validation_failed', failure.message, layer: AppLayer.presentation);
 
         // Remove loading message and add error
         final messagesWithoutLoading = state.messages
@@ -535,11 +520,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
           type: MessageType.error,
         );
 
-        emit(ChatFlowError(
-          messages: [...messagesWithoutLoading, errorMessage],
-          errorMessage: failure.message,
-          recoverableStep: ChatStep.jsonInput,
-        ));
+        emit(
+          ChatFlowError(
+            messages: [...messagesWithoutLoading, errorMessage],
+            errorMessage: failure.message,
+            recoverableStep: ChatStep.jsonInput,
+          ),
+        );
       },
       (aiPayload) {
         _log.info(
@@ -557,18 +544,20 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
             .where((m) => m.type != MessageType.loading)
             .toList();
         // Use string interpolation for the count
-        final successText = t.chat.validationSuccess.replaceAll('{count}', moments.length.toString());
-        final successMessage = ChatMessage.bot(
-          text: successText,
-          timestamp: DateTime.now(),
+        final successText = t.chat.validationSuccess.replaceAll(
+          '{count}',
+          moments.length.toString(),
         );
+        final successMessage = ChatMessage.bot(text: successText, timestamp: DateTime.now());
 
-        emit(ChatFlowCompleted(
-          messages: [...messagesWithoutLoading, successMessage],
-          aiPayload: aiPayload,
-          moments: moments,
-          youtubeUrl: currentState.analyzeResult.video.sourceUrl,
-        ));
+        emit(
+          ChatFlowCompleted(
+            messages: [...messagesWithoutLoading, successMessage],
+            aiPayload: aiPayload,
+            moments: moments,
+            youtubeUrl: currentState.analyzeResult.video.sourceUrl,
+          ),
+        );
       },
     );
   }
@@ -589,9 +578,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
     );
 
     // Remove error messages and return to recoverable step
-    final messagesWithoutErrors = state.messages
-        .where((m) => m.type != MessageType.error)
-        .toList();
+    final messagesWithoutErrors = state.messages.where((m) => m.type != MessageType.error).toList();
 
     switch (currentState.recoverableStep) {
       case ChatStep.welcome:
@@ -600,10 +587,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
         // Recover to language selection with URL
         final url = currentState.recoverableData?['url'] as String?;
         if (url != null) {
-          emit(ChatFlowLanguageSelection(
-            messages: messagesWithoutErrors,
-            url: url,
-          ));
+          emit(ChatFlowLanguageSelection(messages: messagesWithoutErrors, url: url));
         } else {
           emit(ChatFlowInitial(messages: messagesWithoutErrors));
         }
@@ -611,11 +595,13 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
         // Try to recover to JSON input state if possible
         final previousState = state;
         if (previousState is ChatFlowJsonInput) {
-          emit(ChatFlowJsonInput(
-            messages: messagesWithoutErrors,
-            prompt: previousState.prompt,
-            analyzeResult: previousState.analyzeResult,
-          ));
+          emit(
+            ChatFlowJsonInput(
+              messages: messagesWithoutErrors,
+              prompt: previousState.prompt,
+              analyzeResult: previousState.analyzeResult,
+            ),
+          );
         } else {
           emit(ChatFlowInitial(messages: messagesWithoutErrors));
         }
@@ -626,11 +612,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
 
   /// Reset flow to initial state
   void reset() {
-    _log.info(
-      'chatflow_reset',
-      'Chat flow reset',
-      layer: AppLayer.presentation,
-    );
+    _log.info('chatflow_reset', 'Chat flow reset', layer: AppLayer.presentation);
 
     emit(_initialState());
   }
@@ -641,9 +623,7 @@ class ChatFlowCubit extends Cubit<ChatFlowState> {
       NetworkFailure() => t.chat.errorNetwork,
       ValidationFailure() => t.chat.errorInvalidUrl,
       ServerFailure(:final code) =>
-        code == 'NO_TRANSCRIPT'
-            ? t.chat.errorNoTranscript
-            : failure.message,
+        code == 'NO_TRANSCRIPT' ? t.chat.errorNoTranscript : failure.message,
       UnexpectedFailure() => t.chat.errorNetwork,
     };
   }
