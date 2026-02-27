@@ -16,6 +16,12 @@ class WebLaunchService implements LaunchService {
     link.click();
     body.removeChild(link);
   }
+
+  @override
+  Future<void> launchUrl(String url) async {
+    // Open URL in a new tab
+    web.window.open(url, '_blank');
+  }
 }
 
 LaunchService getLaunchService() => WebLaunchService();

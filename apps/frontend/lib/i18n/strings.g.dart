@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 112 (56 per locale)
+/// Strings: 186 (93 per locale)
 ///
-/// Built on 2026-02-27 at 01:20 UTC
+/// Built on 2026-02-27 at 16:41 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -150,6 +150,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	// Translations
 	late final _StringsCommonUk common = _StringsCommonUk._(_root);
 	late final _StringsAnalyzeUk analyze = _StringsAnalyzeUk._(_root);
+	late final _StringsChatUk chat = _StringsChatUk._(_root);
 	late final _StringsPromptUk prompt = _StringsPromptUk._(_root);
 	late final _StringsPasteUk paste = _StringsPasteUk._(_root);
 	late final _StringsGeminiStepUk geminiStep = _StringsGeminiStepUk._(_root);
@@ -193,6 +194,44 @@ class _StringsAnalyzeUk {
 	String get urlHint => 'https://www.youtube.com/watch?v=...';
 	String get languageLabel => 'Профіль мови';
 	late final _StringsAnalyzeLanguagesUk languages = _StringsAnalyzeLanguagesUk._(_root);
+}
+
+// Path: chat
+class _StringsChatUk {
+	_StringsChatUk._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Funny Threads AI';
+	String get welcomeMessage => 'Привіт! Я допоможу перетворити YouTube відео на віральні кліпи. Надішліть мені посилання на відео.';
+	String get selectLanguagePrompt => 'Яку мову використовувати для аналізу?';
+	String get thinking => 'Думаю...';
+	String get analyzingVideo => 'Аналізую відео...';
+	String get videoFound => 'Знайшов відео! Виберіть мову для генерації:';
+	String get buildingPrompt => 'Готую AI промпт...';
+	String get promptReady => 'Промпт готовий! Скопіюйте його та відкрийте ваш AI-інструмент.';
+	String get promptCopied => 'Промпт скопійовано!';
+	String get pasteJsonPrompt => 'Вставте JSON відповідь від AI:';
+	String get validating => 'Перевіряю відповідь...';
+	String get validationSuccess => 'Чудово! Знайдено {count} моментів. Переходжу до огляду...';
+	String get validationFailed => 'Помилка валідації. Перевірте формат JSON.';
+	String get retry => 'Спробувати ще раз';
+	String get resetConfirm => 'Почати спочатку? Весь прогрес буде втрачено.';
+	String get aiPromptTitle => 'AI Промпт';
+	String get aiPromptSubtitle => 'Скопіюйте та вставте в ChatGPT, Claude або Gemini';
+	String get copyPrompt => 'Копіювати';
+	String get openAiTool => 'Відкрити AI';
+	String get openChatGPT => 'Відкрити ChatGPT';
+	String get openClaude => 'Відкрити Claude';
+	String get iHaveResponse => 'Вже маю відповідь';
+	String get send => 'Надіслати';
+	String get proceed => 'Продовжити';
+	String get urlHint => 'https://youtube.com/watch?v=...';
+	String get jsonHint => 'Вставте JSON відповідь тут...';
+	String get errorNetwork => 'Помилка мережі. Перевірте з\'єднання.';
+	String get errorInvalidUrl => 'Невірне посилання на YouTube.';
+	String get errorNoTranscript => 'Субтитри не знайдено. Спробуйте інше відео.';
 }
 
 // Path: prompt
@@ -252,9 +291,9 @@ class _StringsReviewUk {
 	String get deselectAll => 'Скасувати вибір';
 	String get noMoments => 'У відповіді AI не знайдено моментів.\nПоверніться та згенеруйте заново, коли з\'являться субтитри.';
 	String get minSelectionError => 'Виберіть принаймні 3 моменти для генерації.';
-	String clipDuration({required Object duration}) => '${duration}с кліп';
-	String selectedInfo({required Object selected, required Object total}) => '${selected} з ${total} вибрано';
-	String generate({required Object count}) => 'Згенерувати ${count} кліпів';
+	String get clipDuration => '{duration}с кліп';
+	String get selectedInfo => '{selected} з {total} вибрано';
+	String get generate => 'Згенерувати {count} кліпів';
 }
 
 // Path: processing
@@ -330,6 +369,7 @@ class _StringsEn implements Translations {
 	// Translations
 	@override late final _StringsCommonEn common = _StringsCommonEn._(_root);
 	@override late final _StringsAnalyzeEn analyze = _StringsAnalyzeEn._(_root);
+	@override late final _StringsChatEn chat = _StringsChatEn._(_root);
 	@override late final _StringsPromptEn prompt = _StringsPromptEn._(_root);
 	@override late final _StringsPasteEn paste = _StringsPasteEn._(_root);
 	@override late final _StringsGeminiStepEn geminiStep = _StringsGeminiStepEn._(_root);
@@ -373,6 +413,44 @@ class _StringsAnalyzeEn implements _StringsAnalyzeUk {
 	@override String get urlHint => 'https://www.youtube.com/watch?v=...';
 	@override String get languageLabel => 'Language profile';
 	@override late final _StringsAnalyzeLanguagesEn languages = _StringsAnalyzeLanguagesEn._(_root);
+}
+
+// Path: chat
+class _StringsChatEn implements _StringsChatUk {
+	_StringsChatEn._(this._root);
+
+	@override final _StringsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Funny Threads AI';
+	@override String get welcomeMessage => 'Hi! I\'ll help you turn YouTube videos into viral clips. Send me a video link.';
+	@override String get selectLanguagePrompt => 'Which language should I use for the analysis?';
+	@override String get thinking => 'Thinking...';
+	@override String get analyzingVideo => 'Analyzing video...';
+	@override String get videoFound => 'Found the video! Select a language for generation:';
+	@override String get buildingPrompt => 'Preparing AI prompt...';
+	@override String get promptReady => 'Prompt ready! Copy it and open your AI tool.';
+	@override String get promptCopied => 'Prompt copied!';
+	@override String get pasteJsonPrompt => 'Paste the AI JSON response:';
+	@override String get validating => 'Validating response...';
+	@override String get validationSuccess => 'Great! Found {count} moments. Going to review...';
+	@override String get validationFailed => 'Validation error. Please check the JSON format.';
+	@override String get retry => 'Try again';
+	@override String get resetConfirm => 'Start over? All progress will be lost.';
+	@override String get aiPromptTitle => 'AI Prompt';
+	@override String get aiPromptSubtitle => 'Copy and paste into ChatGPT, Claude, or Gemini';
+	@override String get copyPrompt => 'Copy';
+	@override String get openAiTool => 'Open AI Tool';
+	@override String get openChatGPT => 'Open ChatGPT';
+	@override String get openClaude => 'Open Claude';
+	@override String get iHaveResponse => 'I have a response';
+	@override String get send => 'Send';
+	@override String get proceed => 'Continue';
+	@override String get urlHint => 'https://youtube.com/watch?v=...';
+	@override String get jsonHint => 'Paste JSON response here...';
+	@override String get errorNetwork => 'Network error. Please check your connection.';
+	@override String get errorInvalidUrl => 'Invalid YouTube link.';
+	@override String get errorNoTranscript => 'Subtitles not found. Try another video.';
 }
 
 // Path: prompt
@@ -432,9 +510,9 @@ class _StringsReviewEn implements _StringsReviewUk {
 	@override String get deselectAll => 'Deselect All';
 	@override String get noMoments => 'No moments found in AI response.\nGo back and regenerate after transcript is available.';
 	@override String get minSelectionError => 'Select at least 3 moments to generate.';
-	@override String clipDuration({required Object duration}) => '${duration} clip';
-	@override String selectedInfo({required Object selected, required Object total}) => '${selected} of ${total} selected';
-	@override String generate({required Object count}) => 'Generate ${count} Video Posts';
+	@override String get clipDuration => '{duration}s clip';
+	@override String get selectedInfo => '{selected} of {total} selected';
+	@override String get generate => 'Generate {count} Video Posts';
 }
 
 // Path: processing
@@ -512,6 +590,35 @@ extension on Translations {
 			case 'analyze.languages.uk': return 'Українська';
 			case 'analyze.languages.uk_18': return 'Українська 18+';
 			case 'analyze.languages.ru': return 'Російська';
+			case 'chat.title': return 'Funny Threads AI';
+			case 'chat.welcomeMessage': return 'Привіт! Я допоможу перетворити YouTube відео на віральні кліпи. Надішліть мені посилання на відео.';
+			case 'chat.selectLanguagePrompt': return 'Яку мову використовувати для аналізу?';
+			case 'chat.thinking': return 'Думаю...';
+			case 'chat.analyzingVideo': return 'Аналізую відео...';
+			case 'chat.videoFound': return 'Знайшов відео! Виберіть мову для генерації:';
+			case 'chat.buildingPrompt': return 'Готую AI промпт...';
+			case 'chat.promptReady': return 'Промпт готовий! Скопіюйте його та відкрийте ваш AI-інструмент.';
+			case 'chat.promptCopied': return 'Промпт скопійовано!';
+			case 'chat.pasteJsonPrompt': return 'Вставте JSON відповідь від AI:';
+			case 'chat.validating': return 'Перевіряю відповідь...';
+			case 'chat.validationSuccess': return 'Чудово! Знайдено {count} моментів. Переходжу до огляду...';
+			case 'chat.validationFailed': return 'Помилка валідації. Перевірте формат JSON.';
+			case 'chat.retry': return 'Спробувати ще раз';
+			case 'chat.resetConfirm': return 'Почати спочатку? Весь прогрес буде втрачено.';
+			case 'chat.aiPromptTitle': return 'AI Промпт';
+			case 'chat.aiPromptSubtitle': return 'Скопіюйте та вставте в ChatGPT, Claude або Gemini';
+			case 'chat.copyPrompt': return 'Копіювати';
+			case 'chat.openAiTool': return 'Відкрити AI';
+			case 'chat.openChatGPT': return 'Відкрити ChatGPT';
+			case 'chat.openClaude': return 'Відкрити Claude';
+			case 'chat.iHaveResponse': return 'Вже маю відповідь';
+			case 'chat.send': return 'Надіслати';
+			case 'chat.proceed': return 'Продовжити';
+			case 'chat.urlHint': return 'https://youtube.com/watch?v=...';
+			case 'chat.jsonHint': return 'Вставте JSON відповідь тут...';
+			case 'chat.errorNetwork': return 'Помилка мережі. Перевірте з\'єднання.';
+			case 'chat.errorInvalidUrl': return 'Невірне посилання на YouTube.';
+			case 'chat.errorNoTranscript': return 'Субтитри не знайдено. Спробуйте інше відео.';
 			case 'prompt.title': return 'Копіювати AI промпт';
 			case 'prompt.step1': return '1. Скопіюйте промпт нижче';
 			case 'prompt.step2': return '2. Вставте його в ChatGPT, Claude, Gemini тощо.';
@@ -535,9 +642,9 @@ extension on Translations {
 			case 'review.deselectAll': return 'Скасувати вибір';
 			case 'review.noMoments': return 'У відповіді AI не знайдено моментів.\nПоверніться та згенеруйте заново, коли з\'являться субтитри.';
 			case 'review.minSelectionError': return 'Виберіть принаймні 3 моменти для генерації.';
-			case 'review.clipDuration': return ({required Object duration}) => '${duration}с кліп';
-			case 'review.selectedInfo': return ({required Object selected, required Object total}) => '${selected} з ${total} вибрано';
-			case 'review.generate': return ({required Object count}) => 'Згенерувати ${count} кліпів';
+			case 'review.clipDuration': return '{duration}с кліп';
+			case 'review.selectedInfo': return '{selected} з {total} вибрано';
+			case 'review.generate': return 'Згенерувати {count} кліпів';
 			case 'processing.title': return 'Генерація кліпів';
 			case 'processing.errorTitle': return 'Щось пішло не так';
 			case 'processing.goBack': return 'Повернутися до огляду';
@@ -584,6 +691,35 @@ extension on _StringsEn {
 			case 'analyze.languages.uk': return 'Ukrainian';
 			case 'analyze.languages.uk_18': return 'Ukrainian 18+';
 			case 'analyze.languages.ru': return 'Russian';
+			case 'chat.title': return 'Funny Threads AI';
+			case 'chat.welcomeMessage': return 'Hi! I\'ll help you turn YouTube videos into viral clips. Send me a video link.';
+			case 'chat.selectLanguagePrompt': return 'Which language should I use for the analysis?';
+			case 'chat.thinking': return 'Thinking...';
+			case 'chat.analyzingVideo': return 'Analyzing video...';
+			case 'chat.videoFound': return 'Found the video! Select a language for generation:';
+			case 'chat.buildingPrompt': return 'Preparing AI prompt...';
+			case 'chat.promptReady': return 'Prompt ready! Copy it and open your AI tool.';
+			case 'chat.promptCopied': return 'Prompt copied!';
+			case 'chat.pasteJsonPrompt': return 'Paste the AI JSON response:';
+			case 'chat.validating': return 'Validating response...';
+			case 'chat.validationSuccess': return 'Great! Found {count} moments. Going to review...';
+			case 'chat.validationFailed': return 'Validation error. Please check the JSON format.';
+			case 'chat.retry': return 'Try again';
+			case 'chat.resetConfirm': return 'Start over? All progress will be lost.';
+			case 'chat.aiPromptTitle': return 'AI Prompt';
+			case 'chat.aiPromptSubtitle': return 'Copy and paste into ChatGPT, Claude, or Gemini';
+			case 'chat.copyPrompt': return 'Copy';
+			case 'chat.openAiTool': return 'Open AI Tool';
+			case 'chat.openChatGPT': return 'Open ChatGPT';
+			case 'chat.openClaude': return 'Open Claude';
+			case 'chat.iHaveResponse': return 'I have a response';
+			case 'chat.send': return 'Send';
+			case 'chat.proceed': return 'Continue';
+			case 'chat.urlHint': return 'https://youtube.com/watch?v=...';
+			case 'chat.jsonHint': return 'Paste JSON response here...';
+			case 'chat.errorNetwork': return 'Network error. Please check your connection.';
+			case 'chat.errorInvalidUrl': return 'Invalid YouTube link.';
+			case 'chat.errorNoTranscript': return 'Subtitles not found. Try another video.';
 			case 'prompt.title': return 'Copy AI Prompt';
 			case 'prompt.step1': return '1. Copy the prompt below';
 			case 'prompt.step2': return '2. Paste it into ChatGPT, Claude, Gemini, etc.';
@@ -607,9 +743,9 @@ extension on _StringsEn {
 			case 'review.deselectAll': return 'Deselect All';
 			case 'review.noMoments': return 'No moments found in AI response.\nGo back and regenerate after transcript is available.';
 			case 'review.minSelectionError': return 'Select at least 3 moments to generate.';
-			case 'review.clipDuration': return ({required Object duration}) => '${duration} clip';
-			case 'review.selectedInfo': return ({required Object selected, required Object total}) => '${selected} of ${total} selected';
-			case 'review.generate': return ({required Object count}) => 'Generate ${count} Video Posts';
+			case 'review.clipDuration': return '{duration}s clip';
+			case 'review.selectedInfo': return '{selected} of {total} selected';
+			case 'review.generate': return 'Generate {count} Video Posts';
 			case 'processing.title': return 'Generating Clips';
 			case 'processing.errorTitle': return 'Something went wrong';
 			case 'processing.goBack': return 'Go back to review';

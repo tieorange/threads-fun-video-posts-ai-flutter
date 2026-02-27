@@ -62,6 +62,15 @@
   - `apps/frontend/lib/features/video_processing/presentation/pages/processing_page.dart`
   - `apps/frontend/lib/features/video_processing/presentation/pages/results_page.dart`
 
+### 4) On-Device Log Overlay (for Profile Mode)
+- Add `apps/frontend/lib/core/logging/log_overlay.dart`.
+- Behavior:
+  - Enabled in Debug and Profile modes (`!kReleaseMode`).
+  - Floating bug icon button in the bottom-right corner.
+  - Toggles a full-screen semi-transparent overlay showing all buffered logs.
+  - Includes a `Copy` button to export the AI bundle to the clipboard.
+  - Useful for debugging on physical devices (e.g., iPhone via `make iphone`).
+
 ### 4) FE logging in different places
 - Presentation (pages/widgets):
   - Route enter/exit, button taps, submit attempts, form validation failures, snackbars with error codes.

@@ -27,6 +27,37 @@
             "ru": "Russian"
         }
     },
+    "chat": {
+        "title": "Funny Threads AI",
+        "welcomeMessage": "Hi! I'll help you turn YouTube videos into viral clips. Send me a video link.",
+        "selectLanguagePrompt": "Which language should I use for the analysis?",
+        "thinking": "Thinking...",
+        "analyzingVideo": "Analyzing video...",
+        "videoFound": "Found the video! Select a language for generation:",
+        "buildingPrompt": "Preparing AI prompt...",
+        "promptReady": "Prompt ready! Copy it and open your AI tool.",
+        "promptCopied": "Prompt copied!",
+        "pasteJsonPrompt": "Paste the AI JSON response:",
+        "validating": "Validating response...",
+        "validationSuccess": "Great! Found {count} moments. Going to review...",
+        "validationFailed": "Validation error. Please check the JSON format.",
+        "retry": "Try again",
+        "resetConfirm": "Start over? All progress will be lost.",
+        "aiPromptTitle": "AI Prompt",
+        "aiPromptSubtitle": "Copy and paste into ChatGPT, Claude, or Gemini",
+        "copyPrompt": "Copy",
+        "openAiTool": "Open AI Tool",
+        "openChatGPT": "Open ChatGPT",
+        "openClaude": "Open Claude",
+        "iHaveResponse": "I have a response",
+        "send": "Send",
+        "proceed": "Continue",
+        "urlHint": "https://youtube.com/watch?v=...",
+        "jsonHint": "Paste JSON response here...",
+        "errorNetwork": "Network error. Please check your connection.",
+        "errorInvalidUrl": "Invalid YouTube link.",
+        "errorNoTranscript": "Subtitles not found. Try another video."
+    },
     "prompt": {
         "title": "Copy AI Prompt",
         "step1": "1. Copy the prompt below",
@@ -57,9 +88,9 @@
         "deselectAll": "Deselect All",
         "noMoments": "No moments found in AI response.\nGo back and regenerate after transcript is available.",
         "minSelectionError": "Select at least 3 moments to generate.",
-        "clipDuration": "$duration clip",
-        "selectedInfo": "$selected of $total selected",
-        "generate": "Generate $count Video Posts"
+        "clipDuration": "{duration}s clip",
+        "selectedInfo": "{selected} of {total} selected",
+        "generate": "Generate {count} Video Posts"
     },
     "processing": {
         "title": "Generating Clips",

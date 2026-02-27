@@ -90,7 +90,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
 
     return AppShellScaffold(
       title: t.review.title,
-      leading: BackButton(onPressed: () => context.go('/paste')),
+      leading: BackButton(onPressed: () => context.go('/prompt')),
       actions: [
         BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
           builder: (context, state) => TextButton(
@@ -295,7 +295,7 @@ class _MomentCardState extends State<_MomentCard> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0))}',
+                    '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${(widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0)}s clip',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -376,14 +376,14 @@ class _BottomBar extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              t.review.selectedInfo(selected: selectedCount, total: totalCount),
+              '$selectedCount of $totalCount selected',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const Spacer(),
             FilledButton.icon(
               onPressed: selectedCount >= _minMomentsToGenerate ? onGenerate : null,
               icon: const Icon(Icons.auto_awesome),
-              label: Text(t.review.generate(count: selectedCount)),
+              label: Text('Generate $selectedCount Video Posts'),
             ),
           ],
         ),

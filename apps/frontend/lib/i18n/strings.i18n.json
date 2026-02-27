@@ -27,6 +27,37 @@
             "ru": "Російська"
         }
     },
+    "chat": {
+        "title": "Funny Threads AI",
+        "welcomeMessage": "Привіт! Я допоможу перетворити YouTube відео на віральні кліпи. Надішліть мені посилання на відео.",
+        "selectLanguagePrompt": "Яку мову використовувати для аналізу?",
+        "thinking": "Думаю...",
+        "analyzingVideo": "Аналізую відео...",
+        "videoFound": "Знайшов відео! Виберіть мову для генерації:",
+        "buildingPrompt": "Готую AI промпт...",
+        "promptReady": "Промпт готовий! Скопіюйте його та відкрийте ваш AI-інструмент.",
+        "promptCopied": "Промпт скопійовано!",
+        "pasteJsonPrompt": "Вставте JSON відповідь від AI:",
+        "validating": "Перевіряю відповідь...",
+        "validationSuccess": "Чудово! Знайдено {count} моментів. Переходжу до огляду...",
+        "validationFailed": "Помилка валідації. Перевірте формат JSON.",
+        "retry": "Спробувати ще раз",
+        "resetConfirm": "Почати спочатку? Весь прогрес буде втрачено.",
+        "aiPromptTitle": "AI Промпт",
+        "aiPromptSubtitle": "Скопіюйте та вставте в ChatGPT, Claude або Gemini",
+        "copyPrompt": "Копіювати",
+        "openAiTool": "Відкрити AI",
+        "openChatGPT": "Відкрити ChatGPT",
+        "openClaude": "Відкрити Claude",
+        "iHaveResponse": "Вже маю відповідь",
+        "send": "Надіслати",
+        "proceed": "Продовжити",
+        "urlHint": "https://youtube.com/watch?v=...",
+        "jsonHint": "Вставте JSON відповідь тут...",
+        "errorNetwork": "Помилка мережі. Перевірте з'єднання.",
+        "errorInvalidUrl": "Невірне посилання на YouTube.",
+        "errorNoTranscript": "Субтитри не знайдено. Спробуйте інше відео."
+    },
     "prompt": {
         "title": "Копіювати AI промпт",
         "step1": "1. Скопіюйте промпт нижче",
@@ -57,9 +88,9 @@
         "deselectAll": "Скасувати вибір",
         "noMoments": "У відповіді AI не знайдено моментів.\nПоверніться та згенеруйте заново, коли з'являться субтитри.",
         "minSelectionError": "Виберіть принаймні 3 моменти для генерації.",
-        "clipDuration": "$durationс кліп",
-        "selectedInfo": "$selected з $total вибрано",
-        "generate": "Згенерувати $count кліпів"
+        "clipDuration": "{duration}с кліп",
+        "selectedInfo": "{selected} з {total} вибрано",
+        "generate": "Згенерувати {count} кліпів"
     },
     "processing": {
         "title": "Генерація кліпів",

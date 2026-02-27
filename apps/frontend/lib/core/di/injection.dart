@@ -19,6 +19,8 @@ import '../../features/video_processing/presentation/cubits/prompt_cubit.dart';
 import '../../features/video_processing/presentation/cubits/json_paste_cubit.dart';
 import '../../features/video_processing/presentation/cubits/moments_review_cubit.dart';
 import '../../features/video_processing/presentation/cubits/process_cubit.dart';
+import '../../features/video_processing/data/datasources/chat_local_storage_datasource.dart';
+import '../../features/video_processing/presentation/cubits/chat_flow_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -32,6 +34,7 @@ void setupDependencies() {
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<ClipboardService>(() => ClipboardService());
   sl.registerLazySingleton<LaunchService>(() => LaunchService());
+  sl.registerLazySingleton<ChatLocalStorageDatasource>(() => ChatLocalStorageDatasource(sl<AppLogger>()));
 
   // Dio
   sl.registerLazySingleton<Dio>(
@@ -68,4 +71,15 @@ void setupDependencies() {
   sl.registerFactory(
     () => ProcessCubit(sl<SubmitProcessUseCase>(), sl<PollJobStatusUseCase>(), sl<AppLogger>()),
   );
+  
+  // ChatFlowCubit - new instance per app start
+  sl.registerFactory(() => ChatFlowCubit(
+    analyzeVideoUseCase: sl<AnalyzeVideoUseCase>(),
+    buildAiPromptUseCase: sl<BuildAiPromptUseCase>(),
+    validateAndParseJsonUseCase: sl<ValidateAndParseJsonUseCase>(),
+    log: sl<AppLogger>(),
+    clipboard: sl<ClipboardService>(),
+    launchService: sl<LaunchService>(),
+    localStorage: sl<ChatLocalStorageDatasource>(),
+  ));
 }

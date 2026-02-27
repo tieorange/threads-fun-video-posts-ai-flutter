@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/injection.dart';
 import 'core/logging/log_entry.dart';
 import 'core/logging/logger.dart';
+import 'core/logging/log_overlay.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/router.dart';
@@ -82,12 +83,12 @@ void main() {
   log.info('app_start', 'App starting', layer: AppLayer.core, feature: 'core');
 
   initCubits();
-  runApp(
-    MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => sl<ThemeCubit>())],
-      child: TranslationProvider(child: const FunnyThreadsApp()),
-    ),
+  final app = MultiBlocProvider(
+    providers: [BlocProvider(create: (_) => sl<ThemeCubit>())],
+    child: TranslationProvider(child: const FunnyThreadsApp()),
   );
+
+  runApp(kReleaseMode ? app : LogOverlay(child: app));
 }
 
 class FunnyThreadsApp extends StatelessWidget {

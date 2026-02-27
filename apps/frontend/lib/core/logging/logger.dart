@@ -41,7 +41,7 @@ class AppLogger {
       durationMs: durationMs,
     );
     _buffer.add(entry);
-    if (kDebugMode) {
+    if (!kReleaseMode) {
       debugPrint(entry.toString());
     }
   }
@@ -55,9 +55,17 @@ class AppLogger {
     String? jobId,
     Map<String, dynamic>? data,
     int? durationMs,
-  }) =>
-      _emit(LogLevel.debug, event, message,
-          feature: feature, layer: layer, requestId: requestId, jobId: jobId, data: data, durationMs: durationMs);
+  }) => _emit(
+    LogLevel.debug,
+    event,
+    message,
+    feature: feature,
+    layer: layer,
+    requestId: requestId,
+    jobId: jobId,
+    data: data,
+    durationMs: durationMs,
+  );
 
   void info(
     String event,
@@ -68,9 +76,17 @@ class AppLogger {
     String? jobId,
     Map<String, dynamic>? data,
     int? durationMs,
-  }) =>
-      _emit(LogLevel.info, event, message,
-          feature: feature, layer: layer, requestId: requestId, jobId: jobId, data: data, durationMs: durationMs);
+  }) => _emit(
+    LogLevel.info,
+    event,
+    message,
+    feature: feature,
+    layer: layer,
+    requestId: requestId,
+    jobId: jobId,
+    data: data,
+    durationMs: durationMs,
+  );
 
   void warn(
     String event,
@@ -80,9 +96,16 @@ class AppLogger {
     String? requestId,
     String? jobId,
     Map<String, dynamic>? data,
-  }) =>
-      _emit(LogLevel.warn, event, message,
-          feature: feature, layer: layer, requestId: requestId, jobId: jobId, data: data);
+  }) => _emit(
+    LogLevel.warn,
+    event,
+    message,
+    feature: feature,
+    layer: layer,
+    requestId: requestId,
+    jobId: jobId,
+    data: data,
+  );
 
   void error(
     String event,
@@ -93,7 +116,15 @@ class AppLogger {
     String? jobId,
     Map<String, dynamic>? data,
     String? stack,
-  }) =>
-      _emit(LogLevel.error, event, message,
-          feature: feature, layer: layer, requestId: requestId, jobId: jobId, data: data, stack: stack);
+  }) => _emit(
+    LogLevel.error,
+    event,
+    message,
+    feature: feature,
+    layer: layer,
+    requestId: requestId,
+    jobId: jobId,
+    data: data,
+    stack: stack,
+  );
 }
