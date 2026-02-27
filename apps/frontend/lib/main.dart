@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/injection.dart';
 import 'core/logging/log_entry.dart';
@@ -38,6 +39,10 @@ class _AppBlocObserver extends BlocObserver {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    BrowserContextMenu.enableContextMenu();
+  }
 
   // Initialize Slang and set Ukrainian as default
   LocaleSettings.setLocale(AppLocale.uk);

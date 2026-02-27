@@ -41,13 +41,13 @@ class PromptBuilderPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     Expanded(
                       child: Card(
-                        child: Padding(
+                        child: SingleChildScrollView(
                           padding: const EdgeInsets.all(16),
                           child: SelectableText(
                             prompt,
                             style: Theme.of(
                               context,
-                            ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                            ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                       ),

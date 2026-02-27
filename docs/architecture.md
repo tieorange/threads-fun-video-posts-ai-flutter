@@ -66,7 +66,7 @@ storage/
 
 - In-process async queue (single worker, no external queue dependency).
 - Job state persisted to `storage/jobs/<jobId>.json` after every stage.
-- Progress: 0 → 10% (metadata) → 30% (download) → 30–95% (clip loop) → 100%.
+- Progress: 0% → 10% (metadata) → 30% (download) → 50% (transcript) → 95% (clip loop) → 100% (complete).
 
 ---
 
@@ -122,6 +122,9 @@ lib/
 | Manual DTOs | No `freezed`/`json_serializable` codegen | Simpler, faster dev, fewer build steps |
 | `get_it` for DI | `GetIt.instance` singletons | Avoids `BuildContext`-dependent DI |
 | GoRouter + shared cubits | `late final` globals + `BlocProvider.value` | Cubits survive route transitions |
+| Video caching | Local filesystem with content-addressable symlinks | Avoids re-downloading same video for different jobs |
+| Background cleanup | `setInterval` (1hr) + startup scan | Automatic resource management for stale videos/clips |
+| Job recovery on startup | `recover_stale_jobs.usecase.ts` runs at boot | Handles interrupted jobs from previous sessions |
 
 ---
 

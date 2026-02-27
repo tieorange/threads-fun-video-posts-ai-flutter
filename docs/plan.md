@@ -43,7 +43,7 @@
 - Flutter stable (3.27+ acceptable)
 - `flutter_bloc` (Cubit-based)
 - `fpdart`
-- `freezed` + `json_serializable`
+- Manual DTOs for video_processing (no codegen; `freezed`/`json_serializable` deps present but only used for i18n via slang)
 - `dio`
 - `go_router`
 - `video_player` (and optional `chewie`)

@@ -19,6 +19,7 @@ class AnalyzeInputPage extends StatefulWidget {
 
 class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   final _urlController = TextEditingController();
+  final _urlFocusNode = FocusNode();
   String _language = 'uk_18';
 
   List<(String, String)> get _languages => [
@@ -44,15 +45,32 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   @override
   void dispose() {
     _urlController.dispose();
+    _urlFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _pasteFromClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    if (data?.text != null) {
-      setState(() {
-        _urlController.text = data!.text!;
-      });
+    ClipboardData? data;
+    try {
+      data = await Clipboard.getData(Clipboard.kTextPlain);
+    } catch (_) {
+      data = null;
+    }
+
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      setState(() => _urlController.text = data!.text!);
+      return;
+    }
+
+    // Safari iOS: clipboard API unavailable — focus field so user can long-press → Paste
+    _urlFocusNode.requestFocus();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Long-press the text field, then tap Paste'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -80,66 +98,78 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
             );
           }
         },
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    t.analyze.subtitle,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _urlController,
-                    decoration: InputDecoration(
-                      labelText: t.analyze.urlLabel,
-                      hintText: t.analyze.urlHint,
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.link),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.content_paste),
-                        onPressed: _pasteFromClipboard,
-                        tooltip: t.common.paste,
-                      ),
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          t.analyze.subtitle,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        TextField(
+                          controller: _urlController,
+                          focusNode: _urlFocusNode,
+                          decoration: InputDecoration(
+                            labelText: t.analyze.urlLabel,
+                            hintText: t.analyze.urlHint,
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.link),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.content_paste),
+                              onPressed: _pasteFromClipboard,
+                              tooltip: t.common.paste,
+                            ),
+                          ),
+                          keyboardType: TextInputType.url,
+                          textInputAction: TextInputAction.go,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textCapitalization: TextCapitalization.none,
+                          onSubmitted: (_) => _analyze(),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownMenu<String>(
+                          initialSelection: _language,
+                          label: Text(t.analyze.languageLabel),
+                          leadingIcon: const Icon(Icons.language),
+                          expandedInsets: EdgeInsets.zero,
+                          dropdownMenuEntries: _languages
+                              .map((l) => DropdownMenuEntry(value: l.$1, label: l.$2))
+                              .toList(),
+                          onSelected: (v) => setState(() => _language = v ?? 'en'),
+                        ),
+                        const SizedBox(height: 24),
+                        BlocBuilder<AnalyzeCubit, AnalyzeState>(
+                          builder: (context, state) {
+                            final loading = state is AnalyzeLoading;
+                            return FilledButton.icon(
+                              onPressed: loading ? null : _analyze,
+                              icon: loading
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.search),
+                              label: Text(loading ? t.common.analyzing : t.common.analyze),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    keyboardType: TextInputType.url,
-                    onSubmitted: (_) => _analyze(),
                   ),
-                  const SizedBox(height: 16),
-                  DropdownMenu<String>(
-                    initialSelection: _language,
-                    label: Text(t.analyze.languageLabel),
-                    leadingIcon: const Icon(Icons.language),
-                    expandedInsets: EdgeInsets.zero,
-                    dropdownMenuEntries: _languages
-                        .map((l) => DropdownMenuEntry(value: l.$1, label: l.$2))
-                        .toList(),
-                    onSelected: (v) => setState(() => _language = v ?? 'en'),
-                  ),
-                  const SizedBox(height: 24),
-                  BlocBuilder<AnalyzeCubit, AnalyzeState>(
-                    builder: (context, state) {
-                      final loading = state is AnalyzeLoading;
-                      return FilledButton.icon(
-                        onPressed: loading ? null : _analyze,
-                        icon: loading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.search),
-                        label: Text(loading ? t.common.analyzing : t.common.analyze),
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           ),

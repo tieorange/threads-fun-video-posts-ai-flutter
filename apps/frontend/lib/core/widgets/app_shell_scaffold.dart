@@ -38,7 +38,7 @@ class AppShellScaffold extends StatelessWidget {
         leading: leading,
         actions: [...?actions, const _ThemeToggleButton(), _CopyLogsButton()],
       ),
-      body: body,
+      body: SafeArea(top: false, child: body),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
     );

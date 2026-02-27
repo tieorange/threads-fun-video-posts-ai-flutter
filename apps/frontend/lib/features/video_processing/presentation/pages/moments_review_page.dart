@@ -34,7 +34,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
   String _iframeUrl(String videoId, FunnyMoment moment) {
     final start = moment.startSec.floor();
     final end = moment.endSec.ceil();
-    return 'https://www.youtube.com/embed/$videoId?start=$start&end=$end&autoplay=0&rel=0';
+    return 'https://www.youtube.com/embed/$videoId?start=$start&end=$end&autoplay=1&rel=0';
   }
 
   Widget _buildIframe(String frameId, String iframeSrc) {
@@ -279,28 +279,31 @@ class _MomentCardState extends State<_MomentCard> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.moment.caption,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0))}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+          InkWell(
+            onTap: widget.onToggle,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.moment.caption,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(widget.moment.postText, style: Theme.of(context).textTheme.bodySmall),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0))}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(widget.moment.postText, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
             ),
           ),
         ],
@@ -318,28 +321,34 @@ class _SelectionBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final badge = GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: selected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: selected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline,
-            width: 2,
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: selected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline,
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              selected ? Icons.check : Icons.add,
+              size: 20,
+              color: selected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
           ),
-        ),
-        child: Icon(
-          selected ? Icons.check : Icons.add,
-          size: 16,
-          color: selected
-              ? Theme.of(context).colorScheme.onPrimary
-              : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

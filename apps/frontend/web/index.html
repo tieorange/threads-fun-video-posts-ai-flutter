@@ -1,38 +1,292 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Funny Threads AI — generate viral short-form video clips from YouTube.">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="frontend">
+  <meta name="apple-mobile-web-app-title" content="Funny Threads AI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
+  <meta name="theme-color" content="#8161FF">
   <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>frontend</title>
+  <title>Funny Threads AI</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background: #07070f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      overflow: hidden;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #boot-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ── grid bg ── */
+    #boot-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(129, 97, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(129, 97, 255, 0.07) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridDrift 8s linear infinite;
+    }
+    @keyframes gridDrift {
+      from { background-position: 0 0; }
+      to   { background-position: 40px 40px; }
+    }
+
+    /* ── scan line ── */
+    #boot-screen::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(129, 97, 255, 0.6), rgba(0, 229, 255, 0.8), rgba(129, 97, 255, 0.6), transparent);
+      box-shadow: 0 0 18px 4px rgba(0, 229, 255, 0.4);
+      animation: scanLine 3s ease-in-out infinite;
+    }
+    @keyframes scanLine {
+      0%   { top: -2px; opacity: 0; }
+      5%   { opacity: 1; }
+      95%  { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* ── rings ── */
+    .rings {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin-bottom: 40px;
+      flex-shrink: 0;
+    }
+    .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+    }
+    .ring-1 {
+      border-color: rgba(129, 97, 255, 0.9);
+      box-shadow: 0 0 14px rgba(129, 97, 255, 0.5), inset 0 0 14px rgba(129, 97, 255, 0.1);
+      animation: spin1 2.4s linear infinite;
+    }
+    .ring-2 {
+      inset: 16px;
+      border-color: rgba(0, 229, 255, 0.7);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+      animation: spin1 1.8s linear infinite reverse;
+    }
+    .ring-3 {
+      inset: 32px;
+      border-color: rgba(129, 97, 255, 0.5);
+      animation: spin1 3.2s linear infinite;
+    }
+    @keyframes spin1 {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* notches on ring-1 */
+    .ring-1::before, .ring-1::after {
+      content: '';
+      position: absolute;
+      width: 8px; height: 8px;
+      background: #00e5ff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+      top: -4px; left: 50%; transform: translateX(-50%);
+    }
+    .ring-1::after { top: auto; bottom: -4px; background: #8161ff; box-shadow: 0 0 10px #8161ff, 0 0 20px #8161ff; }
+
+    /* ── core ── */
+    .core {
+      position: absolute;
+      inset: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(129, 97, 255, 0.35), rgba(0, 229, 255, 0.1) 60%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(129, 97, 255, 0.4), inset 0 0 20px rgba(129, 97, 255, 0.1); }
+      50%       { box-shadow: 0 0 40px rgba(129, 97, 255, 0.7), inset 0 0 30px rgba(0, 229, 255, 0.2); }
+    }
+    .core-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px #8161ff);
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.12); }
+    }
+
+    /* ── text block ── */
+    .boot-text {
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+      color: #e8e0ff;
+      z-index: 1;
+    }
+    .boot-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 16px rgba(129, 97, 255, 0.9), 0 0 32px rgba(129, 97, 255, 0.4);
+      margin-bottom: 6px;
+    }
+    .boot-sub {
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      color: rgba(0, 229, 255, 0.8);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    /* ── status line ── */
+    .status-line {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: rgba(129, 97, 255, 0.85);
+      min-height: 18px;
+      margin-bottom: 20px;
+    }
+    .cursor {
+      display: inline-block;
+      width: 8px; height: 13px;
+      background: #8161ff;
+      vertical-align: middle;
+      margin-left: 3px;
+      animation: blink 0.9s step-start infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── progress bar ── */
+    .progress-track {
+      width: 260px;
+      height: 3px;
+      background: rgba(129, 97, 255, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8161ff, #00e5ff);
+      box-shadow: 0 0 8px #00e5ff;
+      border-radius: 2px;
+      width: 0%;
+      animation: progressAnim 4s ease-out forwards;
+    }
+    @keyframes progressAnim {
+      0%   { width: 0%; }
+      40%  { width: 55%; }
+      70%  { width: 78%; }
+      90%  { width: 91%; }
+      100% { width: 96%; }
+    }
+    .progress-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: rgba(0, 229, 255, 0.5);
+    }
+
+    /* ── corner brackets ── */
+    .bracket { position: absolute; width: 24px; height: 24px; opacity: 0.5; }
+    .bracket-tl { top: 20px; left: 20px; border-top: 1.5px solid #00e5ff; border-left: 1.5px solid #00e5ff; }
+    .bracket-tr { top: 20px; right: 20px; border-top: 1.5px solid #00e5ff; border-right: 1.5px solid #00e5ff; }
+    .bracket-bl { bottom: 20px; left: 20px; border-bottom: 1.5px solid #8161ff; border-left: 1.5px solid #8161ff; }
+    .bracket-br { bottom: 20px; right: 20px; border-bottom: 1.5px solid #8161ff; border-right: 1.5px solid #8161ff; }
+  </style>
 </head>
 <body>
+
+  <div id="boot-screen">
+    <div class="bracket bracket-tl"></div>
+    <div class="bracket bracket-tr"></div>
+    <div class="bracket bracket-bl"></div>
+    <div class="bracket bracket-br"></div>
+
+    <div class="rings">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+      <div class="core">
+        <span class="core-icon">✦</span>
+      </div>
+    </div>
+
+    <div class="boot-text">
+      <div class="boot-title">Funny Threads AI</div>
+      <div class="boot-sub">Neural Interface v2.0</div>
+      <div class="status-line" id="status-text">BOOTING SYSTEM<span class="cursor"></span></div>
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="pct-label">0%</div>
+    </div>
+  </div>
+
+  <script>
+    // Cycle through boot status messages
+    const messages = [
+      'BOOTING SYSTEM',
+      'LOADING NEURAL MODULES',
+      'SYNCING VIDEO PROCESSOR',
+      'CALIBRATING AI CORE',
+      'ESTABLISHING CONNECTION',
+      'READY',
+    ];
+    let msgIdx = 0;
+    const statusEl = document.getElementById('status-text');
+    const pctEl    = document.getElementById('pct-label');
+    const pcts     = [0, 20, 45, 68, 85, 96];
+
+    const msgTimer = setInterval(() => {
+      msgIdx = Math.min(msgIdx + 1, messages.length - 1);
+      statusEl.innerHTML = messages[msgIdx] + '<span class="cursor"></span>';
+      pctEl.textContent  = pcts[msgIdx] + '%';
+      if (msgIdx === messages.length - 1) clearInterval(msgTimer);
+    }, 700);
+
+    // Hide loader when Flutter renders its first frame
+    window.addEventListener('flutter-first-frame', () => {
+      clearInterval(msgTimer);
+      statusEl.innerHTML = 'ONLINE<span class="cursor"></span>';
+      pctEl.textContent  = '100%';
+      setTimeout(() => {
+        const screen = document.getElementById('boot-screen');
+        if (screen) {
+          screen.classList.add('hidden');
+          screen.addEventListener('transitionend', () => screen.remove(), { once: true });
+        }
+      }, 300);
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -49,6 +49,7 @@ class ResultsPage extends StatelessWidget {
                 final wide = constraints.maxWidth >= 720;
                 return ListView.separated(
                   padding: EdgeInsets.symmetric(horizontal: wide ? 48 : 16, vertical: 16),
+                  physics: const BouncingScrollPhysics(),
                   itemCount: jobStatus.clips.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
@@ -90,7 +91,7 @@ class _ClipCardState extends State<_ClipCard> {
     await controller.initialize();
     final chewie = ChewieController(
       videoPlayerController: controller,
-      autoPlay: true,
+      autoPlay: false,
       looping: false,
     );
     setState(() {
