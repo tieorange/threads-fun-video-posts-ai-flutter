@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/di/injection.dart';
 import '../logging/log_exporter.dart';
-import 'log_overlay_controller.dart';
+import '../logging/log_overlay_controller.dart';
 
 class LogOverlay extends StatefulWidget {
   const LogOverlay({super.key, required this.child});
@@ -14,57 +14,40 @@ class LogOverlay extends StatefulWidget {
 }
 
 class _LogOverlayState extends State<LogOverlay> {
-  bool _copied = false;
-
-  Future<void> _copyLogs() async {
-    final exporter = sl<LogExporter>();
-    await Clipboard.setData(ClipboardData(text: exporter.buildAiBundle()));
-    if (!mounted) return;
-    setState(() {
-      _copied = true;
-    });
-    Future<void>.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() {
-        _copied = false;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = sl<LogOverlayController>();
+    return ValueListenableBuilder<bool>(
+      valueListenable: controller.isVisible,
+      builder: (context, isVisible, _) {
+        if (!isVisible) return widget.child;
 
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Stack(
-        children: [
-          widget.child,
-          ValueListenableBuilder<bool>(
-            valueListenable: controller.isVisible,
-            builder: (context, isVisible, _) {
-              if (!isVisible) return const SizedBox.shrink();
-              return Positioned.fill(
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Stack(
+            children: [
+              widget.child,
+              Positioned.fill(
                 child: Material(
                   color: Colors.black.withValues(alpha: 0.85),
                   child: SafeArea(
                     child: Column(
                       children: [
-                        _buildHeader(controller),
+                        _buildHeader(context, controller),
                         Expanded(child: _buildLogView()),
                       ],
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(LogOverlayController controller) {
+  Widget _buildHeader(BuildContext context, LogOverlayController controller) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.blueGrey.shade900,
@@ -74,20 +57,21 @@ class _LogOverlayState extends State<LogOverlay> {
             'App Logs',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          if (_copied) ...[
-            const SizedBox(width: 8),
-            const Text(
-              'Copied',
-              style: TextStyle(color: Colors.greenAccent, fontSize: 12),
-            ),
-          ],
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.copy, color: Colors.white),
-            onPressed: _copyLogs,
+            tooltip: 'Copy logs',
+            onPressed: () {
+              final exporter = sl<LogExporter>();
+              Clipboard.setData(ClipboardData(text: exporter.buildAiBundle()));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Logs copied to clipboard')));
+            },
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
+            tooltip: 'Close overlay',
             onPressed: controller.close,
           ),
         ],
@@ -105,11 +89,7 @@ class _LogOverlayState extends State<LogOverlay> {
       child: SingleChildScrollView(
         child: Text(
           logs,
-          style: const TextStyle(
-            color: Colors.greenAccent,
-            fontFamily: 'monospace',
-            fontSize: 10,
-          ),
+          style: const TextStyle(color: Colors.greenAccent, fontFamily: 'monospace', fontSize: 10),
         ),
       ),
     );

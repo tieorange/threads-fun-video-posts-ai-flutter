@@ -80,10 +80,7 @@ void main() {
       layer: AppLayer.core,
       feature: 'core',
       stack: stack.toString(),
-      data: {
-        'errorType': error.runtimeType.toString(),
-        'route': log.currentRoute,
-      },
+      data: {'errorType': error.runtimeType.toString(), 'route': log.currentRoute},
     );
     return false;
   };
@@ -116,8 +113,7 @@ class FunnyThreadsApp extends StatelessWidget {
           themeMode: themeMode,
           routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
-          locale:
-              TranslationProvider.of(context).flutterLocale, // use slang locale
+          locale: TranslationProvider.of(context).flutterLocale, // use slang locale
           supportedLocales: AppLocaleUtils.supportedLocales,
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
         );

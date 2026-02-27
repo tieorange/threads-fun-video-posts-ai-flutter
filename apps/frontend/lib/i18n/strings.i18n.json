@@ -87,7 +87,7 @@
         "selectAll": "Вибрати все",
         "deselectAll": "Скасувати вибір",
         "noMoments": "У відповіді AI не знайдено моментів.\nПоверніться та згенеруйте заново, коли з'являться субтитри.",
-        "minSelectionError": "Виберіть принаймні 1 момент для генерації.",
+        "minSelectionError": "Виберіть принаймні 3 моменти для генерації.",
         "clipDuration": "{duration}с кліп",
         "selectedInfo": "{selected} з {total} вибрано",
         "generate": "Згенерувати {count} кліпів",

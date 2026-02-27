@@ -33,14 +33,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     super.initState();
     _urlController.addListener(_onInputChanged);
     _jsonController.addListener(_onInputChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (widget.currentStep == ChatStep.welcome) {
-        _urlFocusNode.requestFocus();
-      } else if (widget.currentStep == ChatStep.jsonInput) {
-        _jsonFocusNode.requestFocus();
-      }
-    });
   }
 
   @override
@@ -57,33 +49,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   void _onInputChanged() {
     if (mounted) {
       setState(() {});
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant ChatInputArea oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.currentStep != oldWidget.currentStep) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        switch (widget.currentStep) {
-          case ChatStep.welcome:
-            _urlFocusNode.requestFocus();
-            break;
-          case ChatStep.jsonInput:
-            _jsonFocusNode.requestFocus();
-            break;
-          case ChatStep.languageSelection:
-          case ChatStep.analyzing:
-          case ChatStep.metadata:
-          case ChatStep.buildingPrompt:
-          case ChatStep.promptReady:
-          case ChatStep.validating:
-          case ChatStep.completed:
-            FocusScope.of(context).unfocus();
-            break;
-        }
-      });
     }
   }
 
@@ -141,7 +106,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             child: TextField(
               controller: _urlController,
               focusNode: _urlFocusNode,
-              onTapOutside: (_) => _urlFocusNode.unfocus(),
               decoration: InputDecoration(
                 hintText: t.chat.urlHint,
                 prefixIcon: const Icon(Icons.link),
@@ -201,7 +165,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           TextField(
             controller: _jsonController,
             focusNode: _jsonFocusNode,
-            onTapOutside: (_) => _jsonFocusNode.unfocus(),
             minLines: 3,
             maxLines: 6,
             textInputAction: TextInputAction.newline,

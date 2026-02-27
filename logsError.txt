@@ -1,78 +1,423 @@
-BE] [2026-02-27T19:05:43.793Z] INFO  [infrastructure] request_started rid=b496ae3b — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:43.793Z] INFO  [infrastructure] request_finished rid=b496ae3b 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:43.794Z] INFO  [infrastructure] request_started rid=1264a8e2 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:43.794Z] INFO  [infrastructure] request_finished rid=1264a8e2 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:45.722Z] INFO  [data] ffmpeg_cut_clip_done rid=fe-hg767 7504ms — Clip cut successfully
-[BE] [2026-02-27T19:05:45.722Z] INFO  [domain] job_clip_done rid=fe-hg767 job=job_20260227_07f99d29 7504ms — Clip 1/3 done
-[BE] [2026-02-27T19:05:45.791Z] INFO  [infrastructure] request_started rid=b6b57b8d — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:45.792Z] INFO  [infrastructure] request_finished rid=b6b57b8d 1ms — POST /logs → 204
-[BE] [2026-02-27T19:05:45.794Z] INFO  [infrastructure] request_started rid=fe-hg768 — GET /api/v1/videos/process/job_20260227_07f99d29
-[BE] [2026-02-27T19:05:45.795Z] INFO  [infrastructure] request_finished rid=fe-hg768 1ms — GET /process/job_20260227_07f99d29 → 200
-[BE] [2026-02-27T19:05:45.799Z] INFO  [infrastructure] request_started rid=e5f16250 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:45.799Z] INFO  [infrastructure] request_finished rid=e5f16250 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:45.801Z] INFO  [infrastructure] request_started rid=c3ecac60 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:45.802Z] INFO  [infrastructure] request_finished rid=c3ecac60 1ms — POST /logs → 204
-[BE] [2026-02-27T19:05:45.802Z] INFO  [infrastructure] request_started rid=c8c6d992 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:45.802Z] INFO  [infrastructure] request_finished rid=c8c6d992 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:47.765Z] INFO  [data] ffmpeg_cut_clip_done rid=fe-hg767 5522ms — Clip cut successfully
-[BE] [2026-02-27T19:05:47.765Z] INFO  [domain] job_clip_done rid=fe-hg767 job=job_20260227_07f99d29 5522ms — Clip 3/3 done
-[BE] [2026-02-27T19:05:47.766Z] INFO  [domain] job_done rid=fe-hg767 job=job_20260227_07f99d29 — All clips cut, job complete
-[BE] [2026-02-27T19:05:47.804Z] INFO  [infrastructure] request_started rid=321288f1 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:47.804Z] INFO  [infrastructure] request_finished rid=321288f1 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:47.804Z] INFO  [infrastructure] request_started rid=fe-hg768 — GET /api/v1/videos/process/job_20260227_07f99d29
-[BE] [2026-02-27T19:05:47.804Z] INFO  [infrastructure] request_finished rid=fe-hg768 0ms — GET /process/job_20260227_07f99d29 → 200
-[BE] [2026-02-27T19:05:47.893Z] INFO  [infrastructure] request_started rid=471c41c7 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:47.893Z] INFO  [infrastructure] request_finished rid=471c41c7 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:47.894Z] INFO  [infrastructure] request_started rid=3511673b — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:47.894Z] INFO  [presentation] process_done rid=3511673b job=job_20260227_07f99d29 — Job done
-[BE] [2026-02-27T19:05:47.894Z] INFO  [infrastructure] request_finished rid=3511673b 0ms — POST /logs → 204
-[BE] [2026-02-27T19:05:47.895Z] INFO  [infrastructure] request_started rid=41e97125 — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:47.896Z] INFO  [infrastructure] request_finished rid=41e97125 1ms — POST /logs → 204
-[BE] [2026-02-27T19:05:47.896Z] INFO  [infrastructure] request_started rid=6191656f — POST /api/v1/system/logs
-[BE] [2026-02-27T19:05:47.896Z] INFO  [presentation] route_enter rid=6191656f job=job_20260227_07f99d29 — Navigated to /results
-[BE] [2026-02-27T19:05:47.896Z] INFO  [infrastructure] request_finished rid=6191656f 0ms — POST /logs → 204
-[BE] [2026-02-27T19:06:53.533Z] INFO  [infrastructure] request_started rid=8f03d815 — GET /media/clips/job_20260227_07f99d29_m2.mp4
-[BE] [2026-02-27T19:06:53.572Z] INFO  [infrastructure] request_finished rid=8f03d815 39ms — GET /job_20260227_07f99d29_m2.mp4 → 206
-[BE] [2026-02-27T19:06:55.534Z] INFO  [infrastructure] request_started rid=ed587b5d — GET /media/clips/job_20260227_07f99d29_m2.mp4
-[BE] [2026-02-27T19:06:55.536Z] INFO  [infrastructure] request_finished rid=ed587b5d 2ms — GET /job_20260227_07f99d29_m2.mp4 → 304
-[BE] [INFO] 21:07:15 Restarting: /Users/anduser/AndroidStudioProjects/threads-fun-video-posts-ai-flutter/apps/backend/src/core/logging/log_formatter.ts has been modified
-[BE] [2026-02-27T19:07:17.042Z] INFO  [backend] [infrastructure] server_started — Running on http://localhost:3000
-[BE] [INFO] 21:07:21 Restarting: /Users/anduser/AndroidStudioProjects/threads-fun-video-posts-ai-flutter/apps/backend/src/infrastructure/express/request_context.middleware.ts has been modified
-[BE] [2026-02-27T19:07:22.752Z] INFO  [backend] [infrastructure] server_started — Running on http://localhost:3000
-[BE] [2026-02-27T19:07:29.603Z] INFO  [frontend] [presentation] route_enter rid=6ff481ab — Navigated to /
-[BE] [2026-02-27T19:07:29.604Z] INFO  [frontend] [presentation] chatflow_reset rid=cf1f2fea — Chat flow reset
-[BE] [2026-02-27T19:07:41.617Z] INFO  [frontend] [presentation] chatflow_url_submitted rid=7dfa77ba — User submitted URL
-[BE] [2026-02-27T19:07:43.667Z] INFO  [frontend] [presentation] chatflow_language_selected rid=a187dc5a — User selected language, starting analysis
-[BE] [2026-02-27T19:07:43.670Z] INFO  [frontend] [data] http_analyze_start rid=fe-hg76a — POST /api/v1/videos/analyze
-[BE] [2026-02-27T19:07:43.672Z] INFO  [backend] [infrastructure] request_started rid=fe-hg76a — POST /api/v1/videos/analyze
-[BE] [2026-02-27T19:07:43.672Z] INFO  [backend] [presentation] analyze_dto_valid rid=fe-hg76a — DTO validated, calling use case
-[BE] [2026-02-27T19:07:43.672Z] INFO  [backend] [domain] analyze_video_start rid=fe-hg76a — Fetching metadata and captions in parallel
-[BE] [2026-02-27T19:07:43.672Z] INFO  [backend] [data] yt_dlp_get_metadata_start rid=fe-hg76a — Fetching video metadata
-[BE] [2026-02-27T19:07:43.675Z] INFO  [backend] [data] yt_dlp_get_captions_start rid=fe-hg76a — Fetching captions
-[BE] [2026-02-27T19:07:50.512Z] INFO  [backend] [data] yt_dlp_get_metadata_done rid=fe-hg76a 6840ms — Metadata fetched
-[BE] [2026-02-27T19:07:50.801Z] INFO  [backend] [data] yt_dlp_get_captions_done rid=fe-hg76a 7125ms — Captions fetched
-[BE] [2026-02-27T19:07:50.801Z] INFO  [backend] [domain] analyze_video_done rid=fe-hg76a 7129ms — Metadata and captions fetched
-[BE] [2026-02-27T19:07:50.801Z] INFO  [backend] [presentation] analyze_controller_done rid=fe-hg76a — Analyze completed, sending response
-[BE] [2026-02-27T19:07:50.803Z] INFO  [backend] [infrastructure] request_finished rid=fe-hg76a 7131ms — POST /analyze → 200
-[BE] [2026-02-27T19:07:50.834Z] INFO  [frontend] [data] http_analyze_done rid=fe-hg76a 7165ms — Analyze response received
-[BE] [2026-02-27T19:07:50.835Z] INFO  [frontend] [presentation] chatflow_analyze_success rid=5012beb6 — Video analyzed successfully
-[BE] [2026-02-27T19:07:52.752Z] INFO  [backend] [domain] cleanup_resources_start — Starting background resource cleanup
-[BE] [2026-02-27T19:07:52.754Z] INFO  [backend] [domain] cleanup_resources_done 2ms — Resource cleanup completed
-[BE] [2026-02-27T19:07:53.951Z] INFO  [frontend] [presentation] chatflow_building_prompt rid=7d3c81d6 — Building AI prompt
-[BE] [2026-02-27T19:07:53.951Z] INFO  [frontend] [presentation] chatflow_prompt_built rid=76817f76 — AI prompt built successfully
-[BE] [2026-02-27T19:07:57.482Z] INFO  [frontend] [presentation] chatflow_json_submitted rid=0a24eabd — User submitted JSON
-[BE] [2026-02-27T19:07:57.484Z] INFO  [frontend] [presentation] chatflow_validation_success rid=fad4c061 — JSON validation successful
-[BE] [2026-02-27T19:07:57.485Z] INFO  [frontend] [presentation] moments_loaded rid=06bbd82a — Loaded moments, all pre-selected
-[BE] [2026-02-27T19:07:57.485Z] INFO  [frontend] [presentation] route_enter rid=41c2f9ce — Navigated to /review
-[BE] [2026-02-27T19:08:19.850Z] ERROR [frontend] [core] flutter_error rid=1c7043f1 — Null check operator used on a null value
-[BE] STACK: TypeError: Cannot read properties of null (reading '_scaffoldMessengerState')
-[BE]     at _LogOverlayState__buildHeader_closure.call$0 (http://192.168.50.222:3001/main.dart.js:187353:107)
-[BE]     at _InkResponseState.handleTap$0 (http://192.168.50.222:3001/main.dart.js:106869:14)
-[BE]     at tear_off.<anonymous> (http://192.168.50.222:3001/main.dart.js:7394:45)
-[BE]     at TapGestureRecognizer.invokeCallback$1$3$debugReport (http://192.168.50.222:3001/main.dart.js:97130:27)
-[BE]     at TapGestureRecognizer.invokeCallback$2 (http://192.168.50.222:3001/main.dart.js:97141:19)
-[BE]     at TapGestureRecognizer.handleTapUp$2$down$up (http://192.168.50.222:3001/main.dart.js:97965:19)
-[BE]     at TapGestureRecognizer._checkUp$0 (http://192.168.50.222:3001/main.dart.js:97905:13)
-[BE]     at TapGestureRecognizer.handlePrimaryPointer$1 (http://192.168.50.222:3001/main.dart.js:97837:15)
-[BE]     at TapGestureRecognizer.handleEvent$1 (http://192.168.50.222:3001/main.dart.js:97278:17)
-[BE]     at tear_off.<anonymous> (http://192.168.50.222:3001/main.dart.js:7400:45)
+anduser@Mac threads-fun-video-posts-ai-flutter % make iphone
+BE_PORT=3000 FE_PORT=3001 NETWORK_IFACE= MAC_IP= SKIP_INSTALL=0 ./scripts/test_iphone_lan.sh
+Installing dependencies...
+
+up to date, audited 337 packages in 679ms
+
+80 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+Resolving dependencies... 
+Downloading packages... 
+  _fe_analyzer_shared 85.0.0 (96.0.0 available)
+  analyzer 7.7.1 (10.2.0 available)
+  build 2.5.4 (4.0.4 available)
+  build_config 1.1.2 (1.3.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.11.1 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  characters 1.4.0 (1.4.1 available)
+  csv 6.0.0 (7.1.0 available)
+  dart_style 3.1.1 (3.1.6 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  freezed 2.5.8 (3.2.5 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  get_it 8.3.0 (9.2.1 available)
+  go_router 14.8.1 (17.1.0 available)
+  json_annotation 4.9.0 (4.11.0 available)
+  json_serializable 6.9.5 (6.13.0 available)
+  lints 5.1.1 (6.1.0 available)
+  matcher 0.12.17 (0.12.19 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.18.1 available)
+  path_provider_foundation 2.5.1 (2.6.0 available)
+  slang 3.32.0 (4.12.1 available)
+  slang_build_runner 3.32.0 (4.12.1 available)
+  slang_flutter 3.32.0 (4.12.1 available)
+  source_gen 2.0.0 (4.2.0 available)
+  source_helper 1.3.7 (1.3.10 available)
+  test_api 0.7.6 (0.7.10 available)
+  url_launcher_ios 6.3.6 (6.4.1 available)
+  url_launcher_web 2.4.1 (2.4.2 available)
+  video_player 2.10.1 (2.11.0 available)
+  video_player_avfoundation 2.8.9 (2.9.3 available)
+  win32 5.15.0 (6.0.0 available)
+Got dependencies!
+33 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+
+LAN setup
+- Interface: en0
+- Mac IP:    192.168.50.222
+- Backend:   http://192.168.50.222:3000
+- Frontend:  http://192.168.50.222:3001
+
+Scan this QR on iPhone (Safari):
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █   █▄▄▄▀██ ▄▄▄▄▄ ████
+████ █   █ █ ▀▄ ███  █ █   █ ████
+████ █▄▄▄█ █▀██▀▀ ▀ ▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄█ ▀▄█ █▄▄▄▄▄▄▄████
+████  ▀▀▄ ▄██▀▀▄▀▀▀██▀▀▄▀ ▄ ▄████
+████▀▀ ▄▀ ▄█ █▀ ▄███ █ ▀▄▄ ▀█████
+████▀ █ ▄▀▄ ▄█▄█▄  ▄█▀█  ▄▄ ▄████
+██████▄▄▀▀▄ ▀ ▀█▀█▄▄▄▄██▄  ▀█████
+████▄▄▄██▄▄▄ ▀ ▄▀▄ ▄ ▄▄▄ █▄██████
+████ ▄▄▄▄▄ █▀ █ ▄ ▄▄ █▄█  ▄▀█████
+████ █   █ █▄ ██▄ ▀▄ ▄▄▄▄ ▄▄ ████
+████ █▄▄▄█ █▀ ██▀█▀▀█▀█  ██ █████
+████▄▄▄▄▄▄▄█▄▄▄▄█▄▄▄█▄▄█▄█▄▄▄████
+█████████████████████████████████
+█████████████████████████████████
+
+Starting backend and frontend...
+Press Ctrl+C to stop both.
+
+[BE] 
+[BE] > funny-threads-ai-backend@1.0.0 dev
+[BE] > ts-node-dev --respawn --transpile-only src/main.ts
+[BE] 
+[BE] [INFO] 21:47:26 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+[FE] Launching lib/main.dart on Web Server in profile mode...
+[BE] [2026-02-27T19:47:28.907Z] INFO  [backend] [infrastructure] server_started — Running on http://localhost:3000
+[FE] Compiling lib/main.dart for the Web...                             20.7s
+[FE] ✓ Built build/web
+[FE] lib/main.dart is being served at http://0.0.0.0:3001
+[FE] The web-server device requires the Dart Debug Chrome extension for debugging. Consider using the Chrome or Edge devices for an improved development workflow.
+[FE] 
+[FE] Flutter run key commands.
+[FE] r Hot reload. 🔥🔥🔥
+[FE] h List all available interactive commands.
+[FE] d Detach (terminate "flutter run" but leave application running).
+[FE] c Clear the screen
+[FE] q Quit (terminate the application on the device).
+[FE] 
+[BE] [2026-02-27T19:47:58.907Z] INFO  [backend] [domain] cleanup_resources_start — Starting background resource cleanup
+[BE] [2026-02-27T19:47:58.910Z] INFO  [backend] [domain] cleanup_resources_done 3ms — Resource cleanup completed
+[BE] [2026-02-27T19:49:49.986Z] INFO  [frontend] [core] app_start rid=aef4e14d — App starting
+[BE] [2026-02-27T19:49:49.988Z] INFO  [frontend] [presentation] chatflow_state_restored rid=c30a1261 — Restored chat state from localStorage
+[BE] [2026-02-27T19:49:49.990Z] ERROR [frontend] [core] flutter_error rid=8d221cff — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'index')
+[BE]     at AlignmentDirectional.resolve$1 (http://192.168.50.222:3001/main.dart.js:117970:25)
+[BE]     at RenderStack.get$_stack$_resolvedAlignment (http://192.168.50.222:3001/main.dart.js:137116:76)
+[BE]     at RenderStack.performLayout$0 (http://192.168.50.222:3001/main.dart.js:137227:33)
+[BE]     at RenderStack.layout$2$parentUsesSize (http://192.168.50.222:3001/main.dart.js:128892:15)
+[BE]     at _ReusableRenderView.performLayout$0 (http://192.168.50.222:3001/main.dart.js:137408:12)
+[BE]     at _ReusableRenderView._layoutWithoutResize$0 (http://192.168.50.222:3001/main.dart.js:128860:15)
+[BE]     at PipelineOwner.flushLayout$0 (http://192.168.50.222:3001/main.dart.js:128525:20)
+[BE]     at _DefaultRootPipelineOwner.flushLayout$0 (http://192.168.50.222:3001/main.dart.js:128532:17)
+[BE]     at WidgetsFlutterBinding.drawFrame$0 (http://192.168.50.222:3001/main.dart.js:123603:10)
+[BE]     at WidgetsFlutterBinding.drawFrame$0 (http://192.168.50.222:3001/main.dart.js:149139:15)
+[BE] [2026-02-27T19:49:49.990Z] INFO  [frontend] [presentation] route_enter rid=21da97de — Navigated to /
+[BE] [2026-02-27T19:49:49.990Z] ERROR [frontend] [core] flutter_error rid=f85871a7 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'textDirection')
+[BE]     at Icon.build$1 (http://192.168.50.222:3001/main.dart.js:157840:93)
+[BE]     at StatelessElement.build$0 (http://192.168.50.222:3001/main.dart.js:156316:59)
+[BE]     at StatelessElement.performRebuild$0 (http://192.168.50.222:3001/main.dart.js:156270:23)
+[BE]     at StatelessElement.rebuild$1$force (http://192.168.50.222:3001/main.dart.js:156161:14)
+[BE]     at StatelessElement.rebuild$0 (http://192.168.50.222:3001/main.dart.js:156166:19)
+[BE]     at StatelessElement._firstBuild$0 (http://192.168.50.222:3001/main.dart.js:156265:12)
+[BE]     at StatelessElement.mount$2 (http://192.168.50.222:3001/main.dart.js:156262:12)
+[BE]     at InheritedElement.inflateWidget$2 (http://192.168.50.222:3001/main.dart.js:155966:19)
+[BE]     at InheritedElement.updateChild$3 (http://192.168.50.222:3001/main.dart.js:155727:26)
+[BE]     at InheritedElement.performRebuild$0 (http://192.168.50.222:3001/main.dart.js:156281:41)
+[BE] [2026-02-27T19:49:49.991Z] ERROR [frontend] [core] flutter_error rid=76c10f2d — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:49.992Z] ERROR [frontend] [core] flutter_error rid=2c3adae4 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at RendererBinding_initMouseTracker_closure.call$2 (http://192.168.50.222:3001/main.dart.js:123641:18)
+[BE]     at MouseTracker.updateWithEvent$2 (http://192.168.50.222:3001/main.dart.js:128146:59)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95373:12)
+[BE] [2026-02-27T19:49:49.993Z] ERROR [frontend] [core] flutter_error rid=8e2ba45c — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:49.993Z] ERROR [frontend] [core] flutter_error rid=e7ca6ab8 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:50.020Z] WARN  [frontend] [core] log_repeat_suppressed rid=330225bd — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:50.623Z] WARN  [frontend] [core] log_repeat_suppressed rid=47344e2f — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:50.804Z] WARN  [frontend] [core] log_repeat_suppressed rid=c72edc9e — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:50.979Z] WARN  [frontend] [core] log_repeat_suppressed rid=ab7fd57d — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:51.163Z] WARN  [frontend] [core] log_repeat_suppressed rid=91fd1db4 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:57.612Z] ERROR [frontend] [core] flutter_error rid=f193d965 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:57.617Z] ERROR [frontend] [core] flutter_error rid=3a41ce27 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:57.625Z] ERROR [frontend] [core] flutter_error rid=ebbe9202 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:57.633Z] ERROR [frontend] [core] flutter_error rid=e0918972 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:49:57.642Z] WARN  [frontend] [core] log_repeat_suppressed rid=2605321e — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:57.800Z] WARN  [frontend] [core] log_repeat_suppressed rid=cd0de73f — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:58.302Z] WARN  [frontend] [core] log_repeat_suppressed rid=c5c404e6 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:58.502Z] WARN  [frontend] [core] log_repeat_suppressed rid=0ff8d183 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:58.718Z] WARN  [frontend] [core] log_repeat_suppressed rid=b7380185 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:59.193Z] WARN  [frontend] [core] log_repeat_suppressed rid=eb0b04b1 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:59.375Z] WARN  [frontend] [core] log_repeat_suppressed rid=2fe6a45b — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:49:59.560Z] WARN  [frontend] [core] log_repeat_suppressed rid=c8cac55e — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:00.034Z] WARN  [frontend] [core] log_repeat_suppressed rid=57266f29 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:00.477Z] WARN  [frontend] [core] log_repeat_suppressed rid=b16f2879 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:00.668Z] WARN  [frontend] [core] log_repeat_suppressed rid=845c2e6f — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:01.092Z] WARN  [frontend] [core] log_repeat_suppressed rid=1171d065 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:01.284Z] WARN  [frontend] [core] log_repeat_suppressed rid=d04977a1 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:01.468Z] WARN  [frontend] [core] log_repeat_suppressed rid=94d68030 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:01.820Z] ERROR [frontend] [core] flutter_error rid=a59c558d — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:01.827Z] ERROR [frontend] [core] flutter_error rid=7204c37c — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:01.834Z] ERROR [frontend] [core] flutter_error rid=d4566660 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:01.843Z] ERROR [frontend] [core] flutter_error rid=3e5e5813 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:01.852Z] WARN  [frontend] [core] log_repeat_suppressed rid=37180a4d — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:02.032Z] WARN  [frontend] [core] log_repeat_suppressed rid=a4d60675 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:02.384Z] WARN  [frontend] [core] log_repeat_suppressed rid=0e0c6e10 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:06.079Z] ERROR [frontend] [core] flutter_error rid=7ec8efb6 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:06.083Z] ERROR [frontend] [core] flutter_error rid=4ee42920 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:06.093Z] ERROR [frontend] [core] flutter_error rid=e4ab2958 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:06.100Z] ERROR [frontend] [core] flutter_error rid=712dd530 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:06.117Z] WARN  [frontend] [core] log_repeat_suppressed rid=9ec8557c — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:06.275Z] WARN  [frontend] [core] log_repeat_suppressed rid=d001036b — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:07.027Z] INFO  [frontend] [core] app_start rid=a2c8fdb2 — App starting
+[BE] [2026-02-27T19:50:07.030Z] INFO  [frontend] [presentation] chatflow_state_restored rid=3521ef20 — Restored chat state from localStorage
+[BE] [2026-02-27T19:50:07.032Z] INFO  [frontend] [presentation] route_enter rid=0cbf5793 — Navigated to /
+[BE] [2026-02-27T19:50:07.033Z] ERROR [frontend] [core] flutter_error rid=7be222b9 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'index')
+[BE]     at AlignmentDirectional.resolve$1 (http://192.168.50.222:3001/main.dart.js:117970:25)
+[BE]     at RenderStack.get$_stack$_resolvedAlignment (http://192.168.50.222:3001/main.dart.js:137116:76)
+[BE]     at RenderStack.performLayout$0 (http://192.168.50.222:3001/main.dart.js:137227:33)
+[BE]     at RenderStack.layout$2$parentUsesSize (http://192.168.50.222:3001/main.dart.js:128892:15)
+[BE]     at _ReusableRenderView.performLayout$0 (http://192.168.50.222:3001/main.dart.js:137408:12)
+[BE]     at _ReusableRenderView._layoutWithoutResize$0 (http://192.168.50.222:3001/main.dart.js:128860:15)
+[BE]     at PipelineOwner.flushLayout$0 (http://192.168.50.222:3001/main.dart.js:128525:20)
+[BE]     at _DefaultRootPipelineOwner.flushLayout$0 (http://192.168.50.222:3001/main.dart.js:128532:17)
+[BE]     at WidgetsFlutterBinding.drawFrame$0 (http://192.168.50.222:3001/main.dart.js:123603:10)
+[BE]     at WidgetsFlutterBinding.drawFrame$0 (http://192.168.50.222:3001/main.dart.js:149139:15)
+[BE] [2026-02-27T19:50:07.034Z] ERROR [frontend] [core] flutter_error rid=50118733 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at RendererBinding_initMouseTracker_closure.call$2 (http://192.168.50.222:3001/main.dart.js:123641:18)
+[BE]     at MouseTracker.updateWithEvent$2 (http://192.168.50.222:3001/main.dart.js:128146:59)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95373:12)
+[BE] [2026-02-27T19:50:07.035Z] ERROR [frontend] [core] flutter_error rid=cf3e873e — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'textDirection')
+[BE]     at Icon.build$1 (http://192.168.50.222:3001/main.dart.js:157840:93)
+[BE]     at StatelessElement.build$0 (http://192.168.50.222:3001/main.dart.js:156316:59)
+[BE]     at StatelessElement.performRebuild$0 (http://192.168.50.222:3001/main.dart.js:156270:23)
+[BE]     at StatelessElement.rebuild$1$force (http://192.168.50.222:3001/main.dart.js:156161:14)
+[BE]     at StatelessElement.rebuild$0 (http://192.168.50.222:3001/main.dart.js:156166:19)
+[BE]     at StatelessElement._firstBuild$0 (http://192.168.50.222:3001/main.dart.js:156265:12)
+[BE]     at StatelessElement.mount$2 (http://192.168.50.222:3001/main.dart.js:156262:12)
+[BE]     at InheritedElement.inflateWidget$2 (http://192.168.50.222:3001/main.dart.js:155966:19)
+[BE]     at InheritedElement.updateChild$3 (http://192.168.50.222:3001/main.dart.js:155727:26)
+[BE]     at InheritedElement.performRebuild$0 (http://192.168.50.222:3001/main.dart.js:156281:41)
+[BE] [2026-02-27T19:50:07.035Z] ERROR [frontend] [core] flutter_error rid=f0e7e420 — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:07.042Z] ERROR [frontend] [core] flutter_error rid=7b437c8c — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:07.044Z] ERROR [frontend] [core] flutter_error rid=177e68bd — Null check operator used on a null value
+[BE] STACK: TypeError: Cannot read properties of null (reading 'contains$1')
+[BE]     at RenderMergeSemantics.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124100:28)
+[BE]     at RenderBoxContainerDefaultsMixin_defaultHitTestChildren_closure.call$2 (http://192.168.50.222:3001/main.dart.js:124211:32)
+[BE]     at BoxHitTestResult.addWithPaintOffset$3$hitTest$offset$position (http://192.168.50.222:3001/main.dart.js:123839:23)
+[BE]     at RenderStack.defaultHitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:124189:20)
+[BE]     at RenderStack.hitTestChildren$2$position (http://192.168.50.222:3001/main.dart.js:137247:19)
+[BE]     at RenderStack.hitTest$2$position (http://192.168.50.222:3001/main.dart.js:124101:19)
+[BE]     at WidgetsFlutterBinding.hitTestInView$3 (http://192.168.50.222:3001/main.dart.js:149047:14)
+[BE]     at WidgetsFlutterBinding._handlePointerEventImmediately$1 (http://192.168.50.222:3001/main.dart.js:95363:15)
+[BE]     at WidgetsFlutterBinding.handlePointerEvent$1 (http://192.168.50.222:3001/main.dart.js:95356:12)
+[BE]     at WidgetsFlutterBinding._flushPointerEventQueue$0 (http://192.168.50.222:3001/main.dart.js:95352:14)
+[BE] [2026-02-27T19:50:07.384Z] WARN  [frontend] [core] log_repeat_suppressed rid=a10638b2 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:07.551Z] WARN  [frontend] [core] log_repeat_suppressed rid=e5dc625d — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:07.719Z] WARN  [frontend] [core] log_repeat_suppressed rid=733c5092 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:07.894Z] WARN  [frontend] [core] log_repeat_suppressed rid=d9c152ba — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:08.059Z] WARN  [frontend] [core] log_repeat_suppressed rid=637ef997 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:08.225Z] WARN  [frontend] [core] log_repeat_suppressed rid=de03bee9 — Suppressed repeated logs for flutter_error
+[BE] [2026-02-27T19:50:08.618Z] WARN  [frontend] [core] log_repeat_suppressed rid=c6a1dd48 — Suppressed repeated logs for flutter_error

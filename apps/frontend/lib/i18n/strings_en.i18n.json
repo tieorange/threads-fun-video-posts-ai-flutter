@@ -87,7 +87,7 @@
         "selectAll": "Select All",
         "deselectAll": "Deselect All",
         "noMoments": "No moments found in AI response.\nGo back and regenerate after transcript is available.",
-        "minSelectionError": "Select at least 1 moment to generate.",
+        "minSelectionError": "Select at least 3 moments to generate.",
         "clipDuration": "{duration}s clip",
         "selectedInfo": "{selected} of {total} selected",
         "generate": "Generate {count} Video Posts",

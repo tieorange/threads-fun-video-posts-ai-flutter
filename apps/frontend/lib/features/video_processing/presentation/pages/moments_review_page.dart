@@ -10,11 +10,7 @@ import '../../../../../core/widgets/app_shell_scaffold.dart';
 import '../../../../../i18n/strings.g.dart';
 
 class MomentsReviewPage extends StatefulWidget {
-  const MomentsReviewPage({
-    super.key,
-    required this.youtubeUrl,
-    required this.aiPayload,
-  });
+  const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
 
   final String youtubeUrl;
   final Map<String, dynamic> aiPayload;
@@ -24,7 +20,7 @@ class MomentsReviewPage extends StatefulWidget {
 }
 
 class _MomentsReviewPageState extends State<MomentsReviewPage> {
-  static const int _minMomentsToGenerate = 1;
+  static const int _minMomentsToGenerate = 3;
   final _registeredFrames = <String>{};
 
   String _videoId(String url) {
@@ -73,25 +69,20 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
     }
 
     final payload = Map<String, dynamic>.from(widget.aiPayload);
-    payload['moments'] =
-        selected
-            .map(
-              (m) => {
-                'id': m.id,
-                'startSec': m.startSec,
-                'endSec': m.endSec,
-                'caption': m.caption,
-                'postText': m.postText,
-                'reason': m.reason,
-              },
-            )
-            .toList();
+    payload['moments'] = selected
+        .map(
+          (m) => {
+            'id': m.id,
+            'startSec': m.startSec,
+            'endSec': m.endSec,
+            'caption': m.caption,
+            'postText': m.postText,
+            'reason': m.reason,
+          },
+        )
+        .toList();
 
-    context.read<ProcessCubit>().startProcessing(
-      widget.youtubeUrl,
-      payload,
-      selected,
-    );
+    context.read<ProcessCubit>().startProcessing(widget.youtubeUrl, payload, selected);
     context.go('/processing');
   }
 
@@ -118,18 +109,14 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
           BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
             builder: (context, state) {
               final allSelected =
-                  state.moments.isNotEmpty &&
-                  state.selected.length == state.moments.length;
+                  state.moments.isNotEmpty && state.selected.length == state.moments.length;
               return TextButton(
-                onPressed:
-                    state.moments.isEmpty
-                        ? null
-                        : allSelected
-                        ? context.read<MomentsReviewCubit>().clearAll
-                        : context.read<MomentsReviewCubit>().selectAll,
-                child: Text(
-                  allSelected ? t.review.deselectAll : t.review.selectAll,
-                ),
+                onPressed: state.moments.isEmpty
+                    ? null
+                    : allSelected
+                    ? context.read<MomentsReviewCubit>().clearAll
+                    : context.read<MomentsReviewCubit>().selectAll,
+                child: Text(allSelected ? t.review.deselectAll : t.review.selectAll),
               );
             },
           ),
@@ -152,15 +139,11 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
               _SelectionSummaryBar(
                 selectedCount: state.selected.length,
                 totalCount: state.moments.length,
-                selectedInfoText: _selectedInfoText(
-                  state.selected.length,
-                  state.moments.length,
-                ),
+                selectedInfoText: _selectedInfoText(state.selected.length, state.moments.length),
                 allSelected: allSelected,
-                onToggleAll:
-                    allSelected
-                        ? context.read<MomentsReviewCubit>().clearAll
-                        : context.read<MomentsReviewCubit>().selectAll,
+                onToggleAll: allSelected
+                    ? context.read<MomentsReviewCubit>().clearAll
+                    : context.read<MomentsReviewCubit>().selectAll,
               ),
               Expanded(
                 child: LayoutBuilder(
@@ -170,12 +153,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
 
                     if (crossCount == 1) {
                       return ListView.builder(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          12,
-                          16,
-                          listBottomPadding,
-                        ),
+                        padding: EdgeInsets.fromLTRB(16, 12, 16, listBottomPadding),
                         physics: const BouncingScrollPhysics(),
                         itemCount: state.moments.length,
                         itemBuilder: (context, index) {
@@ -187,10 +165,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                               selected: state.isSelected(moment.id),
                               videoId: videoId,
                               iframeSrc: _iframeUrl(videoId, moment),
-                              onToggle:
-                                  () => context
-                                      .read<MomentsReviewCubit>()
-                                      .toggle(moment.id),
+                              onToggle: () => context.read<MomentsReviewCubit>().toggle(moment.id),
                               buildIframe: _buildIframe,
                             ),
                           );
@@ -199,20 +174,14 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                     }
 
                     return GridView.builder(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        12,
-                        16,
-                        listBottomPadding,
-                      ),
+                      padding: EdgeInsets.fromLTRB(16, 12, 16, listBottomPadding),
                       physics: const BouncingScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 0.86,
-                          ),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.86,
+                      ),
                       itemCount: state.moments.length,
                       itemBuilder: (context, index) {
                         final moment = state.moments[index];
@@ -221,10 +190,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                           selected: state.isSelected(moment.id),
                           videoId: videoId,
                           iframeSrc: _iframeUrl(videoId, moment),
-                          onToggle:
-                              () => context.read<MomentsReviewCubit>().toggle(
-                                moment.id,
-                              ),
+                          onToggle: () => context.read<MomentsReviewCubit>().toggle(moment.id),
                           buildIframe: _buildIframe,
                         );
                       },
@@ -242,10 +208,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
             selectedCount: state.selected.length,
             totalCount: state.moments.length,
             generateText: _generateText(state.selected.length),
-            selectedInfoText: _selectedInfoText(
-              state.selected.length,
-              state.moments.length,
-            ),
+            selectedInfoText: _selectedInfoText(state.selected.length, state.moments.length),
             onGenerate: _generate,
           );
         },
@@ -277,9 +240,7 @@ class _SelectionSummaryBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       decoration: BoxDecoration(
         color: cs.surface,
-        border: Border(
-          bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35)),
-        ),
+        border: Border(bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35))),
       ),
       child: Wrap(
         spacing: 8,
@@ -293,16 +254,12 @@ class _SelectionSummaryBar extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: totalCount == 0 ? null : onToggleAll,
             icon: Icon(allSelected ? Icons.clear_all : Icons.done_all),
-            label: Text(
-              allSelected ? t.review.deselectAll : t.review.selectAll,
-            ),
+            label: Text(allSelected ? t.review.deselectAll : t.review.selectAll),
           ),
           if (selectedCount < 1)
             Text(
               t.review.minSelectionError,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
             ),
         ],
       ),
@@ -339,8 +296,7 @@ class _MomentCardState extends State<_MomentCard> {
   Widget build(BuildContext context) {
     final frameId = 'yt_${widget.moment.id}';
     final cs = Theme.of(context).colorScheme;
-    final durationSec = (widget.moment.endSec - widget.moment.startSec)
-        .toStringAsFixed(0);
+    final durationSec = (widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -348,10 +304,7 @@ class _MomentCardState extends State<_MomentCard> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color:
-              widget.selected
-                  ? cs.primary
-                  : cs.outlineVariant.withValues(alpha: 0.55),
+          color: widget.selected ? cs.primary : cs.outlineVariant.withValues(alpha: 0.55),
           width: widget.selected ? 2 : 1,
         ),
       ),
@@ -375,17 +328,12 @@ class _MomentCardState extends State<_MomentCard> {
                         Image.network(
                           'https://img.youtube.com/vi/${widget.videoId}/0.jpg',
                           fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                color: Colors.black,
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.video_library,
-                                    color: Colors.white24,
-                                    size: 48,
-                                  ),
-                                ),
-                              ),
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.black,
+                            child: const Center(
+                              child: Icon(Icons.video_library, color: Colors.white24, size: 48),
+                            ),
+                          ),
                         ),
                         Container(
                           color: Colors.black45,
@@ -393,17 +341,11 @@ class _MomentCardState extends State<_MomentCard> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
-                                Icons.play_circle_fill,
-                                size: 66,
-                                color: Colors.white,
-                              ),
+                              const Icon(Icons.play_circle_fill, size: 66, color: Colors.white),
                               const SizedBox(height: 8),
                               Text(
                                 t.review.tapToLoadPreview,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -415,41 +357,17 @@ class _MomentCardState extends State<_MomentCard> {
                     ),
                   ),
                 Positioned(
-                  top: 10,
-                  right: 10,
-                  child: IconButton.filled(
-                    style: IconButton.styleFrom(
-                      backgroundColor:
-                          widget.selected ? cs.primary : cs.surface,
-                      foregroundColor:
-                          widget.selected ? cs.onPrimary : cs.onSurface,
-                      minimumSize: const Size(44, 44),
-                    ),
-                    onPressed: widget.onToggle,
-                    icon: Icon(widget.selected ? Icons.check : Icons.add),
-                    tooltip:
-                        widget.selected
-                            ? t.review.deselectMoment
-                            : t.review.selectMoment,
-                  ),
-                ),
-                Positioned(
                   left: 10,
                   bottom: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black87,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       '${widget.moment.startSec.toStringAsFixed(0)}s → ${widget.moment.endSec.toStringAsFixed(0)}s',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: Colors.white),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white),
                     ),
                   ),
                 ),
@@ -461,29 +379,41 @@ class _MomentCardState extends State<_MomentCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.moment.caption,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.moment.caption,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: widget.selected ? cs.primary : cs.surfaceContainerHigh,
+                        foregroundColor: widget.selected ? cs.onPrimary : cs.onSurface,
+                        minimumSize: const Size(40, 40),
+                      ),
+                      onPressed: widget.onToggle,
+                      icon: Icon(widget.selected ? Icons.check : Icons.add),
+                      tooltip: widget.selected ? t.review.deselectMoment : t.review.selectMoment,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _MetaChip(
-                      icon: Icons.timer_outlined,
-                      text: '$durationSec s',
-                    ),
+                    _MetaChip(icon: Icons.timer_outlined, text: '$durationSec s'),
                     _MetaChip(
                       icon: Icons.content_cut,
-                      text: t.review.clipDuration.replaceFirst(
-                        '{duration}',
-                        durationSec,
-                      ),
+                      text: t.review.clipDuration.replaceFirst('{duration}', durationSec),
                     ),
                     if (widget.selected)
                       _MetaChip(
@@ -496,36 +426,30 @@ class _MomentCardState extends State<_MomentCard> {
                 const SizedBox(height: 10),
                 AnimatedCrossFade(
                   duration: const Duration(milliseconds: 170),
-                  crossFadeState:
-                      _expandedPostText
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
+                  crossFadeState: _expandedPostText
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                   firstChild: Text(
                     widget.moment.postText,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                   ),
                   secondChild: Text(
                     widget.moment.postText,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ),
                 const SizedBox(height: 6),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
-                    onPressed:
-                        () => setState(
-                          () => _expandedPostText = !_expandedPostText,
-                        ),
-                    child: Text(
-                      _expandedPostText ? t.review.showLess : t.review.showMore,
-                    ),
+                    onPressed: () => setState(() => _expandedPostText = !_expandedPostText),
+                    child: Text(_expandedPostText ? t.review.showLess : t.review.showMore),
                   ),
                 ),
               ],
@@ -538,11 +462,7 @@ class _MomentCardState extends State<_MomentCard> {
 }
 
 class _MetaChip extends StatelessWidget {
-  const _MetaChip({
-    required this.icon,
-    required this.text,
-    this.highlighted = false,
-  });
+  const _MetaChip({required this.icon, required this.text, this.highlighted = false});
 
   final IconData icon;
   final String text;
@@ -560,11 +480,7 @@ class _MetaChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: highlighted ? cs.onPrimaryContainer : cs.onSurfaceVariant,
-          ),
+          Icon(icon, size: 14, color: highlighted ? cs.onPrimaryContainer : cs.onSurfaceVariant),
           const SizedBox(width: 4),
           Text(
             text,
@@ -608,20 +524,14 @@ class _BottomBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              selectedInfoText,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text(selectedInfoText, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed:
-                    selectedCount >= _minMomentsToGenerate ? onGenerate : null,
+                onPressed: selectedCount >= _minMomentsToGenerate ? onGenerate : null,
                 icon: const Icon(Icons.auto_awesome),
-                label: Text(
-                  totalCount == 0 ? t.review.generateDisabled : generateText,
-                ),
+                label: Text(totalCount == 0 ? t.review.generateDisabled : generateText),
               ),
             ),
           ],

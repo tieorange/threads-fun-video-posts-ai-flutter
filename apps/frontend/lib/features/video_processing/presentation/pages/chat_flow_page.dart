@@ -22,29 +22,11 @@ class ChatFlowPage extends StatefulWidget {
 class _ChatFlowPageState extends State<ChatFlowPage> {
   final ScrollController _scrollController = ScrollController();
   int _lastMessageCount = 0;
-  double _lastBottomInset = 0;
-  bool _showJumpToBottom = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    final shouldShow = !_isNearBottom();
-    if (shouldShow != _showJumpToBottom && mounted) {
-      setState(() {
-        _showJumpToBottom = shouldShow;
-      });
-    }
   }
 
   bool _isNearBottom() {
@@ -118,16 +100,10 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
           final bottomInset = mediaQuery.viewInsets.bottom;
           final shouldAutoScroll =
               state.messages.length > _lastMessageCount && _isNearBottom();
-          final keyboardShifted = (bottomInset - _lastBottomInset).abs() > 8;
-          final keepBottomVisible = keyboardShifted && _isNearBottom();
           _lastMessageCount = state.messages.length;
-          _lastBottomInset = bottomInset;
 
           if (shouldAutoScroll) {
             _scrollToBottom();
-          }
-          if (keepBottomVisible) {
-            _scrollToBottom(animated: false);
           }
 
           return GestureDetector(
@@ -137,52 +113,28 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               padding: EdgeInsets.only(bottom: math.max(0, bottomInset - 12)),
-              child: Stack(
+              child: Column(
                 children: [
-                  Column(
-                    children: [
-                      // Messages list
-                      Expanded(
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          keyboardDismissBehavior:
-                              ScrollViewKeyboardDismissBehavior.onDrag,
-                          padding: const EdgeInsets.fromLTRB(12, 14, 12, 18),
-                          itemCount: state.messages.length,
-                          itemBuilder: (context, index) {
-                            final message = state.messages[index];
-                            return _buildMessageItem(context, message, state);
-                          },
-                        ),
-                      ),
-                      // Input area based on current step
-                      ChatInputArea(
-                        currentStep: state.currentStep,
-                        onUrlSubmit: (url) => context.read<ChatFlowCubit>().submitUrl(url),
-                        onJsonSubmit: (json) => context.read<ChatFlowCubit>().submitJson(json),
-                        errorMessage: state.errorMessage,
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    right: 16,
-                    bottom: 86 + math.max(mediaQuery.padding.bottom, 0),
-                    child: AnimatedSlide(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOut,
-                      offset: _showJumpToBottom ? Offset.zero : const Offset(0, 1.2),
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 180),
-                        opacity: _showJumpToBottom ? 1 : 0,
-                        child: IgnorePointer(
-                          ignoring: !_showJumpToBottom,
-                          child: FloatingActionButton.small(
-                            onPressed: () => _scrollToBottom(),
-                            child: const Icon(Icons.keyboard_arrow_down_rounded),
-                          ),
-                        ),
-                      ),
+                  // Messages list
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(12, 14, 12, 18),
+                      itemCount: state.messages.length,
+                      itemBuilder: (context, index) {
+                        final message = state.messages[index];
+                        return _buildMessageItem(context, message, state);
+                      },
                     ),
+                  ),
+                  // Input area based on current step
+                  ChatInputArea(
+                    currentStep: state.currentStep,
+                    onUrlSubmit: (url) => context.read<ChatFlowCubit>().submitUrl(url),
+                    onJsonSubmit: (json) => context.read<ChatFlowCubit>().submitJson(json),
+                    errorMessage: state.errorMessage,
                   ),
                 ],
               ),
