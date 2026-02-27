@@ -19,8 +19,8 @@ export class VideoRepositoryImpl implements IVideoRepository {
     return this.ytDlp.getCaptions(url, language);
   }
 
-  downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void): Promise<string> {
-    return this.ytDlp.downloadVideo(url, jobId, onProgress);
+  downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void, signal?: AbortSignal): Promise<string> {
+    return this.ytDlp.downloadVideo(url, jobId, onProgress, signal);
   }
 
   getCachedVideoPath(videoId: string): Promise<string | null> {

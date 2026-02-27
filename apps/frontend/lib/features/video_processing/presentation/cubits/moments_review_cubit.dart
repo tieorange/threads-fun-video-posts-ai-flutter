@@ -10,7 +10,7 @@ class MomentsReviewCubit extends Cubit<MomentsReviewState> {
 
   final AppLogger _log;
 
-  void load(List<FunnyMoment> moments) {
+  void load(List<FunnyMoment> moments, Map<String, dynamic> aiPayload) {
     final allSelected = {for (final m in moments) m.id};
     _log.info(
       'moments_loaded',
@@ -18,7 +18,7 @@ class MomentsReviewCubit extends Cubit<MomentsReviewState> {
       layer: AppLayer.presentation,
       data: {'count': moments.length},
     );
-    emit(MomentsReviewState(moments: moments, selected: allSelected));
+    emit(MomentsReviewState(moments: moments, selected: allSelected, aiPayload: aiPayload));
   }
 
   void toggle(String momentId) {

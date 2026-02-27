@@ -4,6 +4,7 @@ import '../logging/log_buffer.dart';
 import '../logging/log_exporter.dart';
 import '../logging/logger.dart';
 import '../theme/theme_cubit.dart';
+import '../utils/clipboard_service.dart';
 import '../../features/video_processing/data/datasources/video_remote_datasource.dart';
 import '../../features/video_processing/data/repositories/video_repository_impl.dart';
 import '../../features/video_processing/data/repositories/process_repository_impl.dart';
@@ -28,6 +29,7 @@ void setupDependencies() {
   sl.registerLazySingleton<AppLogger>(() => AppLogger(sl<LogBuffer>()));
   sl.registerLazySingleton<LogExporter>(() => LogExporter(sl<LogBuffer>()));
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
+  sl.registerLazySingleton<ClipboardService>(() => ClipboardService());
 
   // Dio
   sl.registerLazySingleton<Dio>(
@@ -56,7 +58,9 @@ void setupDependencies() {
 
   // Cubits (factories — new instance per registration)
   sl.registerFactory(() => AnalyzeCubit(sl<AnalyzeVideoUseCase>(), sl<AppLogger>()));
-  sl.registerFactory(() => PromptCubit(sl<BuildAiPromptUseCase>(), sl<AppLogger>()));
+  sl.registerFactory(
+    () => PromptCubit(sl<BuildAiPromptUseCase>(), sl<AppLogger>(), sl<ClipboardService>()),
+  );
   sl.registerFactory(() => JsonPasteCubit(sl<ValidateAndParseJsonUseCase>(), sl<AppLogger>()));
   sl.registerFactory(() => MomentsReviewCubit(sl<AppLogger>()));
   sl.registerFactory(

@@ -3,7 +3,7 @@ import { AppError } from '../../../../core/errors/app_error';
 import { logger } from '../../../../core/logging/logger';
 
 export interface IFfmpegDataSource {
-  cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void>;
+  cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string, signal?: AbortSignal): Promise<void>;
 }
 
 export interface ClipOptions {
@@ -19,7 +19,7 @@ export class FfmpegDataSource implements IFfmpegDataSource {
 
   async checkDependencies(): Promise<void> {
     return new Promise((resolve, reject) => {
-      ffmpeg.getAvailableCodecs((err, _codecs) => {
+      ffmpeg.getAvailableCodecs((err) => {
         if (err) {
           logger.error('ffmpeg_dependency_check_failed', `ffmpeg not found or not working: ${err.message}`, { layer: 'data' });
           reject(new AppError('DEPENDENCY_MISSING', `ffmpeg is required but could not be executed: ${err.message}`, 500));
@@ -30,7 +30,7 @@ export class FfmpegDataSource implements IFfmpegDataSource {
     });
   }
 
-  cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string): Promise<void> {
+  cutClip(inputPath: string, startSec: number, durationSec: number, outputPath: string, signal?: AbortSignal): Promise<void> {
     const start = Date.now();
     logger.info('ffmpeg_cut_clip_start', 'Starting ffmpeg cut', {
       layer: 'data',
@@ -38,7 +38,7 @@ export class FfmpegDataSource implements IFfmpegDataSource {
     });
 
     return new Promise((resolve, reject) => {
-      ffmpeg(inputPath)
+      const command = ffmpeg(inputPath)
         .setStartTime(startSec)
         .setDuration(durationSec)
         .output(outputPath)
@@ -68,8 +68,20 @@ export class FfmpegDataSource implements IFfmpegDataSource {
             data: { inputPath, startSec, durationSec, outputPath },
           });
           reject(new AppError('CLIP_CUT_FAILED', `FFmpeg error: ${err.message}`, 500));
-        })
-        .run();
+        });
+
+      if (signal) {
+        if (signal.aborted) {
+          command.kill('SIGKILL');
+          return reject(new AppError('CLIP_CUT_CANCELLED', 'Clip cutting was cancelled', 499));
+        }
+        signal.addEventListener('abort', () => {
+          command.kill('SIGKILL');
+          reject(new AppError('CLIP_CUT_CANCELLED', 'Clip cutting was cancelled', 499));
+        });
+      }
+
+      command.run();
     });
   }
 }

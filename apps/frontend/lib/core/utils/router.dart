@@ -80,7 +80,9 @@ final appRouter = GoRouter(
       builder: (context, state) {
         _logRoute('/review');
         final extra = state.extra;
-        final aiPayload = extra is Map<String, dynamic> ? extra : null;
+
+        // Try to get payload from extra (direct navigation) or persisted cubit state (refresh)
+        final aiPayload = extra is Map<String, dynamic> ? extra : _reviewCubit.state.aiPayload;
 
         // YouTube URL comes from the analyze cubit state
         final analyzeState = _analyzeCubit.state;

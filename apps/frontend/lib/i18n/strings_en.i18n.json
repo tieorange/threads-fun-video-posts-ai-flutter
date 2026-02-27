@@ -11,7 +11,8 @@
         "cancel": "Cancel",
         "refresh": "Refresh",
         "toggleDark": "Dark Theme",
-        "toggleLight": "Light Theme"
+        "toggleLight": "Light Theme",
+        "paste": "Paste"
     },
     "analyze": {
         "title": "Funny Threads AI",

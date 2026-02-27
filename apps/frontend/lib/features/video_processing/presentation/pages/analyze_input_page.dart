@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/analyze_cubit.dart';
@@ -18,7 +19,7 @@ class AnalyzeInputPage extends StatefulWidget {
 
 class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   final _urlController = TextEditingController();
-  String _language = 'en';
+  String _language = 'uk_18';
 
   List<(String, String)> get _languages => [
     ('en', t.analyze.languages.en),
@@ -44,6 +45,15 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
   void dispose() {
     _urlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null) {
+      setState(() {
+        _urlController.text = data!.text!;
+      });
+    }
   }
 
   void _analyze() {
@@ -92,6 +102,11 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
                       hintText: t.analyze.urlHint,
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.link),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.content_paste),
+                        onPressed: _pasteFromClipboard,
+                        tooltip: t.common.paste,
+                      ),
                     ),
                     keyboardType: TextInputType.url,
                     onSubmitted: (_) => _analyze(),

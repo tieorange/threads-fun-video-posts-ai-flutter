@@ -52,6 +52,7 @@ export class ProcessVideoUseCase {
 
   private async runAsync(job: JobRecord, payload: AiMomentsPayload): Promise<void> {
     const { jobId } = job;
+    const abortController = new AbortController();
     try {
       await this.updateJob(job, { status: 'running', progress: 10 });
       logger.info('job_running', 'Job started, fetching metadata', { layer: 'domain', jobId });
@@ -76,10 +77,11 @@ export class ProcessVideoUseCase {
             this.updateJob(job, { progress: downloadProgress }).catch((e: unknown) => {
               logger.warn('job_progress_update_failed', String(e), { layer: 'domain', jobId });
             });
-          }),
+          }, abortController.signal),
           config.processDownloadTimeoutMs,
           'DOWNLOAD_TIMEOUT',
           `Video download timed out after ${config.processDownloadTimeoutMs}ms`,
+          abortController,
         );
 
         // Link to cache for future use
@@ -121,10 +123,11 @@ export class ProcessVideoUseCase {
 
         const clipStart = Date.now();
         await this.withTimeout(
-          this.ffmpegDataSource.cutClip(videoPath, moment.startSec, durationSec, outputPath),
+          this.ffmpegDataSource.cutClip(videoPath, moment.startSec, durationSec, outputPath, abortController.signal),
           config.processClipCutTimeoutMs,
           'CLIP_TIMEOUT',
           `Clip cut timed out after ${config.processClipCutTimeoutMs}ms`,
+          abortController,
         );
 
         clips.push({
@@ -171,10 +174,6 @@ export class ProcessVideoUseCase {
         ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
       });
       await this.updateJob(job, { status: 'failed', error: message });
-      // Cleanup locally downloaded video if it's not yet cached or if something went wrong
-      try {
-        await this.jobRepository.delete(jobId);
-      } catch { }
     }
   }
 
@@ -191,10 +190,14 @@ export class ProcessVideoUseCase {
     timeoutMs: number,
     code: string,
     message: string,
+    abortController?: AbortController,
   ): Promise<T> {
     let timeoutId: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
+        if (abortController) {
+          abortController.abort();
+        }
         reject(new Error(`${code}: ${message}`));
       }, timeoutMs);
     });

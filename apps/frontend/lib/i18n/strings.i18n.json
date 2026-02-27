@@ -11,7 +11,8 @@
         "cancel": "Скасувати",
         "refresh": "Оновити",
         "toggleDark": "Темна тема",
-        "toggleLight": "Світла тема"
+        "toggleLight": "Світла тема",
+        "paste": "Вставити"
     },
     "analyze": {
         "title": "Funny Threads AI",

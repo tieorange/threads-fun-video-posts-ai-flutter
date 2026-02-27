@@ -7,7 +7,7 @@ import { VideoMetadata } from '../../domain/entities/video_metadata';
 import { AppError } from '../../../../core/errors/app_error';
 import { logger } from '../../../../core/logging/logger';
 
-interface YtDlpMetadata {
+export interface YtDlpMetadata {
   id: string;
   title: string;
   duration: number;
@@ -20,7 +20,7 @@ interface SubtitleFormat {
   name?: string;
 }
 
-interface YtDlpSubtitlesInfo {
+export interface YtDlpSubtitlesInfo {
   automatic_captions?: Record<string, SubtitleFormat[]>;
   subtitles?: Record<string, SubtitleFormat[]>;
 }
@@ -161,7 +161,7 @@ export class YtDlpDataSource {
     }
   }
 
-  async downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void): Promise<string> {
+  async downloadVideo(url: string, jobId: string, onProgress?: (percent: number) => void, signal?: AbortSignal): Promise<string> {
     const outputPath = path.join(this.storagePath, 'videos', `${jobId}.%(ext)s`);
     const start = Date.now();
     logger.info('yt_dlp_download_start', 'Downloading video with progress tracking', { layer: 'data', jobId, data: { url } });
@@ -179,6 +179,17 @@ export class YtDlpDataSource {
         ];
 
         const child = spawn('yt-dlp', args);
+
+        if (signal) {
+          if (signal.aborted) {
+            child.kill();
+            return reject(new AppError('DOWNLOAD_CANCELLED', 'Download was cancelled', 499));
+          }
+          signal.addEventListener('abort', () => {
+            child.kill();
+            reject(new AppError('DOWNLOAD_CANCELLED', 'Download was cancelled', 499));
+          });
+        }
 
         child.stdout?.on('data', (data: Buffer) => {
           const line = data.toString().trim();

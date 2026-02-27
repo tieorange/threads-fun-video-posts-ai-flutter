@@ -124,85 +124,49 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final crossCount = constraints.maxWidth >= 900 ? 2 : 1;
+
+                    if (crossCount == 1) {
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: state.moments.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _MomentCard(
+                              moment: state.moments[index],
+                              selected: state.isSelected(state.moments[index].id),
+                              videoId: videoId,
+                              iframeSrc: _iframeUrl(videoId, state.moments[index]),
+                              onToggle: () => context.read<MomentsReviewCubit>().toggle(
+                                state.moments[index].id,
+                              ),
+                              buildIframe: _buildIframe,
+                            ),
+                          );
+                        },
+                      );
+                    }
+
                     return GridView.builder(
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossCount,
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
-                        childAspectRatio: crossCount == 2 ? 1.1 : 1.5,
+                        childAspectRatio: 0.85, // Taller cards for grid to avoid overflow
                       ),
                       itemCount: state.moments.length,
                       itemBuilder: (context, index) {
-                        final moment = state.moments[index];
-                        final selected = state.isSelected(moment.id);
-                        final frameId = 'yt_${moment.id}';
-                        final iframeSrc = _iframeUrl(videoId, moment);
-
-                        return Card(
-                          clipBehavior: Clip.antiAlias,
-                          elevation: selected ? 4 : 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: selected
-                                ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
-                                : BorderSide.none,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Stack(
-                                  children: [
-                                    _buildIframe(frameId, iframeSrc),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
-                                      child: _SelectionBadge(
-                                        selected: selected,
-                                        onTap: () =>
-                                            context.read<MomentsReviewCubit>().toggle(moment.id),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        moment.caption,
-                                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${moment.startSec.toStringAsFixed(0)}s – ${moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (moment.endSec - moment.startSec).toStringAsFixed(0))}',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        moment.postText,
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        return _MomentCard(
+                          moment: state.moments[index],
+                          selected: state.isSelected(state.moments[index].id),
+                          videoId: videoId,
+                          iframeSrc: _iframeUrl(videoId, state.moments[index]),
+                          onToggle: () =>
+                              context.read<MomentsReviewCubit>().toggle(state.moments[index].id),
+                          buildIframe: _buildIframe,
                         );
                       },
                     );
@@ -217,6 +181,129 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _MomentCard extends StatefulWidget {
+  const _MomentCard({
+    required this.moment,
+    required this.selected,
+    required this.videoId,
+    required this.iframeSrc,
+    required this.onToggle,
+    required this.buildIframe,
+  });
+
+  final FunnyMoment moment;
+  final bool selected;
+  final String videoId;
+  final String iframeSrc;
+  final VoidCallback onToggle;
+  final Widget Function(String, String) buildIframe;
+
+  @override
+  State<_MomentCard> createState() => _MomentCardState();
+}
+
+class _MomentCardState extends State<_MomentCard> {
+  bool _showPreview = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final frameId = 'yt_${widget.moment.id}';
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: widget.selected ? 4 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: widget.selected
+            ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
+            : BorderSide.none,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Stack(
+              children: [
+                if (_showPreview)
+                  widget.buildIframe(frameId, widget.iframeSrc)
+                else
+                  GestureDetector(
+                    onTap: () => setState(() => _showPreview = true),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          'https://img.youtube.com/vi/${widget.videoId}/0.jpg',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.black,
+                            child: const Center(
+                              child: Icon(Icons.video_library, color: Colors.white24, size: 48),
+                            ),
+                          ),
+                        ),
+                        Container(color: Colors.black26),
+                        const Center(
+                          child: Icon(Icons.play_circle_fill, size: 64, color: Colors.white),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${widget.moment.startSec.toStringAsFixed(0)}s',
+                              style: const TextStyle(color: Colors.white, fontSize: 11),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _SelectionBadge(selected: widget.selected, onTap: widget.onToggle),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.moment.caption,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${t.review.clipDuration(duration: (widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0))}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(widget.moment.postText, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

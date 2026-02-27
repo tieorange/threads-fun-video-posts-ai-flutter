@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../di/injection.dart';
 import '../logging/log_exporter.dart';
 import '../theme/theme_cubit.dart';
+import '../utils/clipboard_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../i18n/strings.g.dart';
 
@@ -54,7 +54,7 @@ class _CopyLogsButton extends StatelessWidget {
       onPressed: () async {
         final exporter = sl<LogExporter>();
         final bundle = exporter.buildAiBundle();
-        await Clipboard.setData(ClipboardData(text: bundle));
+        await sl<ClipboardService>().copy(bundle);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.common.logsCopied), duration: const Duration(seconds: 3)),

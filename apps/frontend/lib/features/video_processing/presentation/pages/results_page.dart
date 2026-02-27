@@ -8,7 +8,6 @@ import 'package:chewie/chewie.dart';
 import '../../domain/entities/clip_artifact.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../cubits/process_cubit.dart';
-import '../cubits/analyze_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
 import '../../../../../i18n/strings.g.dart';
 
@@ -29,8 +28,7 @@ class ResultsPage extends StatelessWidget {
       title: t.results.title,
       leading: BackButton(
         onPressed: () {
-          context.read<AnalyzeCubit>().reset();
-          context.read<ProcessCubit>().reset();
+          context.read<ProcessCubit>().resetAll(context);
           context.go('/');
         },
       ),
@@ -39,8 +37,7 @@ class ResultsPage extends StatelessWidget {
           tooltip: t.results.startOver,
           icon: const Icon(Icons.refresh),
           onPressed: () {
-            context.read<AnalyzeCubit>().reset();
-            context.read<ProcessCubit>().reset();
+            context.read<ProcessCubit>().resetAll(context);
             context.go('/');
           },
         ),

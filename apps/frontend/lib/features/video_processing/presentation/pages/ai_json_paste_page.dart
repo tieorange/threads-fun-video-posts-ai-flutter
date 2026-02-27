@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../cubits/json_paste_cubit.dart';
@@ -22,6 +23,15 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
     super.dispose();
   }
 
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null) {
+      setState(() {
+        _controller.text = data!.text!;
+      });
+    }
+  }
+
   void _validate() {
     context.read<JsonPasteCubit>().validate(_controller.text);
   }
@@ -34,7 +44,7 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
       body: BlocListener<JsonPasteCubit, JsonPasteState>(
         listener: (context, state) {
           if (state is JsonPasteValid) {
-            context.read<MomentsReviewCubit>().load(state.moments);
+            context.read<MomentsReviewCubit>().load(state.moments, state.payload);
             context.go('/review', extra: state.payload);
           }
         },
@@ -46,8 +56,18 @@ class _AiJsonPastePageState extends State<AiJsonPastePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(t.paste.subtitle, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(t.paste.subtitle, style: Theme.of(context).textTheme.titleMedium),
+                      TextButton.icon(
+                        onPressed: _pasteFromClipboard,
+                        icon: const Icon(Icons.content_paste),
+                        label: Text(t.common.paste),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: TextField(
                       controller: _controller,

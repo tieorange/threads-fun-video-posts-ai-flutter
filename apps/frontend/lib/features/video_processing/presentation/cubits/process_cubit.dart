@@ -1,5 +1,9 @@
-import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'analyze_cubit.dart';
+import 'prompt_cubit.dart';
+import 'json_paste_cubit.dart';
+import 'moments_review_cubit.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../../domain/entities/job_status.dart';
 import '../../domain/usecases/submit_process_usecase.dart';
@@ -112,6 +116,19 @@ class ProcessCubit extends Cubit<ProcessState> {
       if (!shouldContinue) break;
       await Future.delayed(const Duration(seconds: 2));
     }
+  }
+
+  void resetAll(BuildContext context) {
+    _activeJobId = null;
+    _log.setJobId('');
+
+    // Reset all related cubits to prevent stale state leaks
+    context.read<AnalyzeCubit>().reset();
+    context.read<PromptCubit>().reset();
+    context.read<JsonPasteCubit>().reset();
+    context.read<MomentsReviewCubit>().reset();
+
+    emit(const ProcessIdle());
   }
 
   void reset() {
