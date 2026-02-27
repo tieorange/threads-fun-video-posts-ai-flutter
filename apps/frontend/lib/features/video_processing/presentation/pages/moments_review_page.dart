@@ -7,7 +7,6 @@ import '../../domain/entities/funny_moment.dart';
 import '../cubits/moments_review_cubit.dart';
 import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../../i18n/strings.g.dart';
 
 class MomentsReviewPage extends StatefulWidget {
@@ -271,11 +270,6 @@ class _MomentCardState extends State<_MomentCard> {
                       ],
                     ),
                   ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: _SelectionBadge(selected: widget.selected, onTap: widget.onToggle),
-                ),
               ],
             ),
           ),
@@ -294,11 +288,18 @@ class _MomentCardState extends State<_MomentCard> {
                     ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${(widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0)}s clip',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${widget.moment.startSec.toStringAsFixed(0)}s – ${widget.moment.endSec.toStringAsFixed(0)}s  •  ${(widget.moment.endSec - widget.moment.startSec).toStringAsFixed(0)}s clip',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      _SelectionBadge(selected: widget.selected, onTap: widget.onToggle),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(widget.moment.postText, style: Theme.of(context).textTheme.bodySmall),
@@ -353,7 +354,7 @@ class _SelectionBadge extends StatelessWidget {
       ),
     );
 
-    return PointerInterceptor(child: badge);
+    return badge;
   }
 }
 

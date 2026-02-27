@@ -11,6 +11,7 @@ interface RequestContext {
 }
 
 export interface LogContext {
+  app?: 'backend' | 'frontend';
   feature?: 'video_processing' | 'core';
   layer: AppLayer;
   requestId?: string;
@@ -64,7 +65,7 @@ class Logger {
     const logEvent: LogEvent = {
       timestamp: new Date().toISOString(),
       level,
-      app: 'backend',
+      app: ctx.app ?? 'backend',
       feature: ctx.feature ?? 'video_processing',
       layer: ctx.layer,
       event,

@@ -9,5 +9,9 @@ export function formatText(event: LogEvent): string {
   const rid = event.requestId ? ` rid=${event.requestId.slice(0, 8)}` : '';
   const jid = event.jobId ? ` job=${event.jobId}` : '';
   const dur = event.durationMs !== undefined ? ` ${event.durationMs}ms` : '';
-  return `[${event.timestamp}] ${lvl} [${event.layer}] ${event.event}${rid}${jid}${dur} — ${event.message}`;
+  let msg = `[${event.timestamp}] ${lvl} [${event.layer}] ${event.event}${rid}${jid}${dur} — ${event.message}`;
+  if (event.stack) {
+    msg += `\nSTACK: ${event.stack}`;
+  }
+  return msg;
 }

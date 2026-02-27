@@ -5,6 +5,7 @@ import 'prompt_cubit.dart';
 import 'json_paste_cubit.dart';
 import '../../data/datasources/chat_local_storage_datasource.dart';
 import 'moments_review_cubit.dart';
+import 'chat_flow_cubit.dart';
 import '../../domain/entities/funny_moment.dart';
 import '../../domain/entities/job_status.dart';
 import '../../domain/usecases/submit_process_usecase.dart';
@@ -64,8 +65,8 @@ class ProcessCubit extends Cubit<ProcessState> {
     );
   }
 
-  void _restoreState() {
-    final jobData = _storage.loadJob();
+  Future<void> _restoreState() async {
+    final jobData = await _storage.loadJob();
     if (jobData != null) {
       _log.info(
         'process_restored',
@@ -140,7 +141,7 @@ class ProcessCubit extends Cubit<ProcessState> {
     }
   }
 
-  void resetAll(BuildContext context) {
+  Future<void> resetAll(BuildContext context) async {
     _activeJobId = null;
     _log.setJobId('');
 
@@ -149,13 +150,16 @@ class ProcessCubit extends Cubit<ProcessState> {
     context.read<PromptCubit>().reset();
     context.read<JsonPasteCubit>().reset();
     context.read<MomentsReviewCubit>().reset();
+    context.read<ChatFlowCubit>().reset();
+    await _storage.clearJob();
 
     emit(const ProcessIdle());
   }
 
-  void reset() {
+  Future<void> reset() async {
     _activeJobId = null;
     _log.setJobId('');
+    await _storage.clearJob();
     emit(const ProcessIdle());
   }
 

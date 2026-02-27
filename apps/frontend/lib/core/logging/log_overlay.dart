@@ -23,34 +23,40 @@ class _LogOverlayState extends State<LogOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        if (_isVisible)
-          Positioned.fill(
-            child: Material(
-              color: Colors.black.withOpacity(0.85),
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    Expanded(child: _buildLogView()),
-                  ],
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          widget.child,
+          if (_isVisible)
+            Positioned.fill(
+              child: Material(
+                color: Colors.black.withValues(alpha: 0.85),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      _buildHeader(),
+                      Expanded(child: _buildLogView()),
+                    ],
+                  ),
                 ),
               ),
             ),
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: Material(
+              type: MaterialType.transparency,
+              child: FloatingActionButton(
+                mini: true,
+                backgroundColor: _isVisible ? Colors.red : Colors.blue,
+                onPressed: _toggleOverlay,
+                child: Icon(_isVisible ? Icons.close : Icons.bug_report),
+              ),
+            ),
           ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: FloatingActionButton(
-            mini: true,
-            backgroundColor: _isVisible ? Colors.red : Colors.blue,
-            onPressed: _toggleOverlay,
-            child: Icon(_isVisible ? Icons.close : Icons.bug_report),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

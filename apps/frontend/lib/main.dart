@@ -54,13 +54,20 @@ void main() {
 
   // Global Flutter framework error hook
   FlutterError.onError = (details) {
+    final exception = details.exception;
     log.error(
       'flutter_error',
       details.exceptionAsString(),
       layer: AppLayer.core,
       feature: 'core',
       stack: details.stack?.toString(),
-      data: {'library': details.library ?? 'unknown'},
+      data: {
+        'library': details.library ?? 'unknown',
+        'exceptionType': exception.runtimeType.toString(),
+        'context': details.context?.toDescription(),
+        'silent': details.silent,
+        'route': log.currentRoute,
+      },
     );
     FlutterError.presentError(details);
   };
@@ -73,6 +80,10 @@ void main() {
       layer: AppLayer.core,
       feature: 'core',
       stack: stack.toString(),
+      data: {
+        'errorType': error.runtimeType.toString(),
+        'route': log.currentRoute,
+      },
     );
     return false;
   };
@@ -105,7 +116,8 @@ class FunnyThreadsApp extends StatelessWidget {
           themeMode: themeMode,
           routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
-          locale: TranslationProvider.of(context).flutterLocale, // use slang locale
+          locale:
+              TranslationProvider.of(context).flutterLocale, // use slang locale
           supportedLocales: AppLocaleUtils.supportedLocales,
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
         );

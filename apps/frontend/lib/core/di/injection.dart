@@ -29,7 +29,7 @@ void setupDependencies() {
 
   // Logging (singletons — shared across whole app)
   sl.registerLazySingleton<LogBuffer>(() => LogBuffer());
-  sl.registerLazySingleton<AppLogger>(() => AppLogger(sl<LogBuffer>()));
+  sl.registerLazySingleton<AppLogger>(() => AppLogger(sl<LogBuffer>(), baseUrl: baseUrl));
   sl.registerLazySingleton<LogExporter>(() => LogExporter(sl<LogBuffer>()));
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<ClipboardService>(() => ClipboardService());

@@ -10,7 +10,7 @@ export type AppLayer =
 export interface LogEvent {
   readonly timestamp: string;
   readonly level: LogLevel;
-  readonly app: 'backend';
+  readonly app: 'backend' | 'frontend';
   readonly feature: 'video_processing' | 'core';
   readonly layer: AppLayer;
   readonly event: string;

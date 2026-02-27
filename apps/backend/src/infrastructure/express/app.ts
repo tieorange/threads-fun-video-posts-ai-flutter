@@ -9,6 +9,8 @@ import { createVideoRouter } from '../../features/video_processing/presentation/
 import { AnalyzeController } from '../../features/video_processing/presentation/controllers/analyze.controller';
 import { ProcessController } from '../../features/video_processing/presentation/controllers/process.controller';
 import { JobStatusController } from '../../features/video_processing/presentation/controllers/job_status.controller';
+import { LogsController } from '../../features/system/presentation/controllers/logs.controller';
+import { createSystemRouter } from '../../features/system/presentation/routes/system.routes';
 import { AnalyzeVideoUseCase } from '../../features/video_processing/domain/usecases/analyze_video.usecase';
 import { ValidateAiPayloadUseCase } from '../../features/video_processing/domain/usecases/validate_ai_payload.usecase';
 import { ProcessVideoUseCase } from '../../features/video_processing/domain/usecases/process_video.usecase';
@@ -80,6 +82,7 @@ export async function createApp(storagePath: string): Promise<Application> {
   const analyzeController = new AnalyzeController(analyzeUseCase);
   const processController = new ProcessController(validateUseCase, processUseCase);
   const jobStatusController = new JobStatusController(getStatusUseCase);
+  const logsController = new LogsController();
 
   // Background Cleanup Task
   const cleanupUseCase = new CleanupResourcesUseCase(jobRepo);
@@ -94,6 +97,9 @@ export async function createApp(storagePath: string): Promise<Application> {
 
   const videoRouter = createVideoRouter(analyzeController, processController, jobStatusController);
   app.use('/api/v1/videos', videoRouter);
+
+  const systemRouter = createSystemRouter(logsController);
+  app.use('/api/v1/system', systemRouter);
 
   // Error middleware (must be last)
   app.use(errorMiddleware);

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:web/web.dart' as web;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/logging/logger.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/funny_moment.dart';
@@ -13,8 +13,8 @@ class ChatLocalStorageDatasource {
   static const String _messagesKey = 'chat_flow_messages';
   static const String _jobKey = 'active_job_state';
 
-  /// Save chat state to localStorage
-  void saveState({
+  /// Save chat state to SharedPreferences
+  Future<void> saveState({
     required String currentStep,
     required List<ChatMessage> messages,
     String? url,
@@ -23,8 +23,9 @@ class ChatLocalStorageDatasource {
     Map<String, dynamic>? aiPayload,
     Map<String, dynamic>? analyzeResult,
     String? prompt,
-  }) {
+  }) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final stateData = <String, dynamic>{
         'currentStep': currentStep,
         'url': url,
@@ -36,23 +37,21 @@ class ChatLocalStorageDatasource {
         'timestamp': DateTime.now().toIso8601String(),
       };
 
-      // Save state
-      web.window.localStorage.setItem(_storageKey, jsonEncode(stateData));
+      await prefs.setString(_storageKey, jsonEncode(stateData));
 
-      // Save messages separately (can be large)
       final messagesData = messages.map((m) => _messageToJson(m)).toList();
-      web.window.localStorage.setItem(_messagesKey, jsonEncode(messagesData));
+      await prefs.setString(_messagesKey, jsonEncode(messagesData));
     } catch (e) {
-      // Silently fail if localStorage is not available or full
       _logger.error('local_storage_error', 'Failed to save chat state: $e');
     }
   }
 
-  /// Load chat state from localStorage
-  ChatPersistenceData? loadState() {
+  /// Load chat state from SharedPreferences
+  Future<ChatPersistenceData?> loadState() async {
     try {
-      final stateJson = web.window.localStorage.getItem(_storageKey);
-      final messagesJson = web.window.localStorage.getItem(_messagesKey);
+      final prefs = await SharedPreferences.getInstance();
+      final stateJson = prefs.getString(_storageKey);
+      final messagesJson = prefs.getString(_messagesKey);
 
       if (stateJson == null || messagesJson == null) {
         return null;
@@ -61,10 +60,9 @@ class ChatLocalStorageDatasource {
       final stateData = jsonDecode(stateJson) as Map<String, dynamic>;
       final messagesData = jsonDecode(messagesJson) as List<dynamic>;
 
-      // Check if data is not too old (24 hours)
       final timestamp = DateTime.parse(stateData['timestamp'] as String);
       if (DateTime.now().difference(timestamp).inHours > 24) {
-        clearState();
+        await clearState();
         return null;
       }
 
@@ -89,46 +87,48 @@ class ChatLocalStorageDatasource {
   }
 
   /// Clear saved state
-  void clearState() {
+  Future<void> clearState() async {
     try {
-      web.window.localStorage.removeItem(_storageKey);
-      web.window.localStorage.removeItem(_messagesKey);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_storageKey);
+      await prefs.remove(_messagesKey);
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to clear chat state: $e');
     }
   }
 
-  /// Save active job to localStorage
-  void saveJob({
+  /// Save active job to SharedPreferences
+  Future<void> saveJob({
     required String jobId,
     required List<FunnyMoment> moments,
     required String youtubeUrl,
-  }) {
+  }) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final jobData = {
         'jobId': jobId,
         'moments': moments.map((m) => m.toJson()).toList(),
         'youtubeUrl': youtubeUrl,
         'timestamp': DateTime.now().toIso8601String(),
       };
-      web.window.localStorage.setItem(_jobKey, jsonEncode(jobData));
+      await prefs.setString(_jobKey, jsonEncode(jobData));
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to save job state: $e');
     }
   }
 
-  /// Load active job from localStorage
-  JobPersistenceData? loadJob() {
+  /// Load active job from SharedPreferences
+  Future<JobPersistenceData?> loadJob() async {
     try {
-      final jobJson = web.window.localStorage.getItem(_jobKey);
+      final prefs = await SharedPreferences.getInstance();
+      final jobJson = prefs.getString(_jobKey);
       if (jobJson == null) return null;
 
       final data = jsonDecode(jobJson) as Map<String, dynamic>;
 
-      // Clear job if older than 12 hours
       final timestamp = DateTime.parse(data['timestamp'] as String);
       if (DateTime.now().difference(timestamp).inHours > 12) {
-        clearJob();
+        await clearJob();
         return null;
       }
 
@@ -146,15 +146,15 @@ class ChatLocalStorageDatasource {
   }
 
   /// Clear active job
-  void clearJob() {
+  Future<void> clearJob() async {
     try {
-      web.window.localStorage.removeItem(_jobKey);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_jobKey);
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to clear job state: $e');
     }
   }
 
-  /// Convert ChatMessage to JSON
   Map<String, dynamic> _messageToJson(ChatMessage message) {
     return {
       'id': message.id,
@@ -166,7 +166,6 @@ class ChatLocalStorageDatasource {
     };
   }
 
-  /// Convert JSON to ChatMessage
   ChatMessage _messageFromJson(Map<String, dynamic> json) {
     final type = MessageType.values.firstWhere(
       (t) => t.name == json['type'],
