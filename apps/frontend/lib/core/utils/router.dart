@@ -10,8 +10,7 @@ import '../../features/video_processing/presentation/cubits/json_paste_cubit.dar
 import '../../features/video_processing/presentation/cubits/moments_review_cubit.dart';
 import '../../features/video_processing/presentation/cubits/process_cubit.dart';
 import '../../features/video_processing/presentation/pages/analyze_input_page.dart';
-import '../../features/video_processing/presentation/pages/prompt_builder_page.dart';
-import '../../features/video_processing/presentation/pages/ai_json_paste_page.dart';
+import '../../features/video_processing/presentation/pages/gemini_step_page.dart';
 import '../../features/video_processing/presentation/pages/moments_review_page.dart';
 import '../../features/video_processing/presentation/pages/processing_page.dart';
 import '../../features/video_processing/presentation/pages/results_page.dart';
@@ -65,14 +64,7 @@ final appRouter = GoRouter(
       path: '/prompt',
       builder: (_, __) {
         _logRoute('/prompt');
-        return _withProviders(const PromptBuilderPage());
-      },
-    ),
-    GoRoute(
-      path: '/paste',
-      builder: (_, __) {
-        _logRoute('/paste');
-        return _withProviders(const AiJsonPastePage());
+        return _withProviders(const GeminiStepPage());
       },
     ),
     GoRoute(

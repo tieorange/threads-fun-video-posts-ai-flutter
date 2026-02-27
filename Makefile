@@ -20,7 +20,7 @@ run-all: ## Run backend + frontend together with [BE]/[FE] logs
 	@bash -lc '\
 	( cd apps/backend && npm run dev 2>&1 | sed "s/^/[BE] /" ) & \
 	BE_PID=$$!; \
-	( cd apps/frontend && flutter run -d chrome --dart-define=API_BASE_URL=$(API_BASE_URL) 2>&1 | sed "s/^/[FE] /" ) & \
+	( cd apps/frontend && flutter run -d chrome --profile --dart-define=API_BASE_URL=$(API_BASE_URL) 2>&1 | sed "s/^/[FE] /" ) & \
 	FE_PID=$$!; \
 	cleanup(){ \
 	  kill $$BE_PID $$FE_PID 2>/dev/null || true; \
@@ -34,7 +34,7 @@ run-be: ## Run backend development server
 	cd apps/backend && npm run dev
 
 run-fe: ## Run frontend development server
-	cd apps/frontend && flutter run -d chrome --dart-define=API_BASE_URL=$(API_BASE_URL)
+	cd apps/frontend && flutter run -d chrome --profile --dart-define=API_BASE_URL=$(API_BASE_URL)
 
 iphone: ## Run BE+FE for iPhone on local network with CLI QR
 	BE_PORT=$(BE_PORT) FE_PORT=$(FE_PORT) NETWORK_IFACE=$(NETWORK_IFACE) MAC_IP=$(MAC_IP) SKIP_INSTALL=0 ./scripts/test_iphone_lan.sh

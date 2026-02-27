@@ -18,7 +18,7 @@ class AppShellScaffold extends StatelessWidget {
     this.actions,
     this.floatingActionButton,
     this.bottomNavigationBar,
-    this.resizeToAvoidBottomInset,
+    this.resizeToAvoidBottomInset = true,
   });
 
   final String? title;
@@ -27,7 +27,7 @@ class AppShellScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
-  final bool? resizeToAvoidBottomInset;
+  final bool resizeToAvoidBottomInset;
 
   @override
   Widget build(BuildContext context) {

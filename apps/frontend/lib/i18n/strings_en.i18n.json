@@ -41,6 +41,16 @@
         "hint": "{\n  \"videoTitle\": \"...\",\n  \"moments\": [...]\n}",
         "validate": "Validate & Preview Moments"
     },
+    "geminiStep": {
+        "title": "Ask Gemini",
+        "step1Title": "1. Copy & Open Gemini",
+        "step1Hint": "The prompt will be copied to clipboard. Paste it in Gemini and ask for funny moments.",
+        "copyOpen": "Copy & Open Gemini",
+        "copiedLabel": "Prompt copied!",
+        "step2Title": "2. Paste Gemini's response",
+        "step2Hint": "Come back here and paste the JSON response below",
+        "validate": "Validate & Preview Moments"
+    },
     "review": {
         "title": "Review Moments",
         "selectAll": "Select All",

@@ -152,6 +152,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	late final _StringsAnalyzeUk analyze = _StringsAnalyzeUk._(_root);
 	late final _StringsPromptUk prompt = _StringsPromptUk._(_root);
 	late final _StringsPasteUk paste = _StringsPasteUk._(_root);
+	late final _StringsGeminiStepUk geminiStep = _StringsGeminiStepUk._(_root);
 	late final _StringsReviewUk review = _StringsReviewUk._(_root);
 	late final _StringsProcessingUk processing = _StringsProcessingUk._(_root);
 	late final _StringsResultsUk results = _StringsResultsUk._(_root);
@@ -219,6 +220,23 @@ class _StringsPasteUk {
 	String get title => 'Вставити відповідь AI';
 	String get subtitle => 'Вставте JSON-відповідь від вашого AI-інструменту';
 	String get hint => '{\n  "videoTitle": "...",\n  "moments": [...]\n}';
+	String get validate => 'Перевірити та переглянути моменти';
+}
+
+// Path: geminiStep
+class _StringsGeminiStepUk {
+	_StringsGeminiStepUk._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Запитати Gemini';
+	String get step1Title => '1. Скопіювати та відкрити Gemini';
+	String get step1Hint => 'Промпт скопіюється в буфер. Вставте його в Gemini та попросіть смішні моменти.';
+	String get copyOpen => 'Скопіювати та відкрити Gemini';
+	String get copiedLabel => 'Промпт скопійовано';
+	String get step2Title => '2. Вставити відповідь Gemini';
+	String get step2Hint => 'Поверніться сюди та вставте JSON відповідь нижче';
 	String get validate => 'Перевірити та переглянути моменти';
 }
 
@@ -314,6 +332,7 @@ class _StringsEn implements Translations {
 	@override late final _StringsAnalyzeEn analyze = _StringsAnalyzeEn._(_root);
 	@override late final _StringsPromptEn prompt = _StringsPromptEn._(_root);
 	@override late final _StringsPasteEn paste = _StringsPasteEn._(_root);
+	@override late final _StringsGeminiStepEn geminiStep = _StringsGeminiStepEn._(_root);
 	@override late final _StringsReviewEn review = _StringsReviewEn._(_root);
 	@override late final _StringsProcessingEn processing = _StringsProcessingEn._(_root);
 	@override late final _StringsResultsEn results = _StringsResultsEn._(_root);
@@ -381,6 +400,23 @@ class _StringsPasteEn implements _StringsPasteUk {
 	@override String get title => 'Paste AI Response';
 	@override String get subtitle => 'Paste the JSON response from your AI tool';
 	@override String get hint => '{\n  "videoTitle": "...",\n  "moments": [...]\n}';
+	@override String get validate => 'Validate & Preview Moments';
+}
+
+// Path: geminiStep
+class _StringsGeminiStepEn implements _StringsGeminiStepUk {
+	_StringsGeminiStepEn._(this._root);
+
+	@override final _StringsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Ask Gemini';
+	@override String get step1Title => '1. Copy & Open Gemini';
+	@override String get step1Hint => 'The prompt will be copied to clipboard. Paste it in Gemini and ask for funny moments.';
+	@override String get copyOpen => 'Copy & Open Gemini';
+	@override String get copiedLabel => 'Prompt copied!';
+	@override String get step2Title => '2. Paste Gemini\'s response';
+	@override String get step2Hint => 'Come back here and paste the JSON response below';
 	@override String get validate => 'Validate & Preview Moments';
 }
 
@@ -486,6 +522,14 @@ extension on Translations {
 			case 'paste.subtitle': return 'Вставте JSON-відповідь від вашого AI-інструменту';
 			case 'paste.hint': return '{\n  "videoTitle": "...",\n  "moments": [...]\n}';
 			case 'paste.validate': return 'Перевірити та переглянути моменти';
+			case 'geminiStep.title': return 'Запитати Gemini';
+			case 'geminiStep.step1Title': return '1. Скопіювати та відкрити Gemini';
+			case 'geminiStep.step1Hint': return 'Промпт скопіюється в буфер. Вставте його в Gemini та попросіть смішні моменти.';
+			case 'geminiStep.copyOpen': return 'Скопіювати та відкрити Gemini';
+			case 'geminiStep.copiedLabel': return 'Промпт скопійовано';
+			case 'geminiStep.step2Title': return '2. Вставити відповідь Gemini';
+			case 'geminiStep.step2Hint': return 'Поверніться сюди та вставте JSON відповідь нижче';
+			case 'geminiStep.validate': return 'Перевірити та переглянути моменти';
 			case 'review.title': return 'Огляд моментів';
 			case 'review.selectAll': return 'Вибрати все';
 			case 'review.deselectAll': return 'Скасувати вибір';
@@ -550,6 +594,14 @@ extension on _StringsEn {
 			case 'paste.subtitle': return 'Paste the JSON response from your AI tool';
 			case 'paste.hint': return '{\n  "videoTitle": "...",\n  "moments": [...]\n}';
 			case 'paste.validate': return 'Validate & Preview Moments';
+			case 'geminiStep.title': return 'Ask Gemini';
+			case 'geminiStep.step1Title': return '1. Copy & Open Gemini';
+			case 'geminiStep.step1Hint': return 'The prompt will be copied to clipboard. Paste it in Gemini and ask for funny moments.';
+			case 'geminiStep.copyOpen': return 'Copy & Open Gemini';
+			case 'geminiStep.copiedLabel': return 'Prompt copied!';
+			case 'geminiStep.step2Title': return '2. Paste Gemini\'s response';
+			case 'geminiStep.step2Hint': return 'Come back here and paste the JSON response below';
+			case 'geminiStep.validate': return 'Validate & Preview Moments';
 			case 'review.title': return 'Review Moments';
 			case 'review.selectAll': return 'Select All';
 			case 'review.deselectAll': return 'Deselect All';

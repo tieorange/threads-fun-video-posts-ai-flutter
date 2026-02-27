@@ -98,78 +98,73 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
             );
           }
         },
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          t.analyze.subtitle,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-                        TextField(
-                          controller: _urlController,
-                          focusNode: _urlFocusNode,
-                          decoration: InputDecoration(
-                            labelText: t.analyze.urlLabel,
-                            hintText: t.analyze.urlHint,
-                            border: const OutlineInputBorder(),
-                            prefixIcon: const Icon(Icons.link),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.content_paste),
-                              onPressed: _pasteFromClipboard,
-                              tooltip: t.common.paste,
-                            ),
-                          ),
-                          keyboardType: TextInputType.url,
-                          textInputAction: TextInputAction.go,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          textCapitalization: TextCapitalization.none,
-                          onSubmitted: (_) => _analyze(),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownMenu<String>(
-                          initialSelection: _language,
-                          label: Text(t.analyze.languageLabel),
-                          leadingIcon: const Icon(Icons.language),
-                          expandedInsets: EdgeInsets.zero,
-                          dropdownMenuEntries: _languages
-                              .map((l) => DropdownMenuEntry(value: l.$1, label: l.$2))
-                              .toList(),
-                          onSelected: (v) => setState(() => _language = v ?? 'en'),
-                        ),
-                        const SizedBox(height: 24),
-                        BlocBuilder<AnalyzeCubit, AnalyzeState>(
-                          builder: (context, state) {
-                            final loading = state is AnalyzeLoading;
-                            return FilledButton.icon(
-                              onPressed: loading ? null : _analyze,
-                              icon: loading
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Icon(Icons.search),
-                              label: Text(loading ? t.common.analyzing : t.common.analyze),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 48), // breathing room at top
+                  Text(
+                    t.analyze.subtitle,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
                   ),
-                ),
+                  const SizedBox(height: 32),
+                  TextField(
+                    controller: _urlController,
+                    focusNode: _urlFocusNode,
+                    decoration: InputDecoration(
+                      labelText: t.analyze.urlLabel,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.link),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.content_paste),
+                        onPressed: _pasteFromClipboard,
+                        tooltip: t.common.paste,
+                      ),
+                    ),
+                    keyboardType: TextInputType.url,
+                    textInputAction: TextInputAction.go,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    textCapitalization: TextCapitalization.none,
+                    onSubmitted: (_) => _analyze(),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownMenu<String>(
+                    initialSelection: _language,
+                    label: Text(t.analyze.languageLabel),
+                    leadingIcon: const Icon(Icons.language),
+                    expandedInsets: EdgeInsets.zero,
+                    dropdownMenuEntries: _languages
+                        .map((l) => DropdownMenuEntry(value: l.$1, label: l.$2))
+                        .toList(),
+                    onSelected: (v) => setState(() => _language = v ?? 'en'),
+                  ),
+                  const SizedBox(height: 24),
+                  BlocBuilder<AnalyzeCubit, AnalyzeState>(
+                    builder: (context, state) {
+                      final loading = state is AnalyzeLoading;
+                      return FilledButton.icon(
+                        onPressed: loading ? null : _analyze,
+                        icon: loading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.search),
+                        label: Text(loading ? t.common.analyzing : t.common.analyze),
+                      );
+                    },
+                  ),
+                  // Bottom buffer so button clears the Safari toolbar
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
           ),

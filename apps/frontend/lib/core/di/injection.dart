@@ -5,6 +5,7 @@ import '../logging/log_exporter.dart';
 import '../logging/logger.dart';
 import '../theme/theme_cubit.dart';
 import '../utils/clipboard_service.dart';
+import '../utils/launch_service.dart';
 import '../../features/video_processing/data/datasources/video_remote_datasource.dart';
 import '../../features/video_processing/data/repositories/video_repository_impl.dart';
 import '../../features/video_processing/data/repositories/process_repository_impl.dart';
@@ -30,6 +31,7 @@ void setupDependencies() {
   sl.registerLazySingleton<LogExporter>(() => LogExporter(sl<LogBuffer>()));
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<ClipboardService>(() => ClipboardService());
+  sl.registerLazySingleton<LaunchService>(() => LaunchService());
 
   // Dio
   sl.registerLazySingleton<Dio>(
