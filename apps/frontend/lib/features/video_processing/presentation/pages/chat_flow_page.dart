@@ -98,29 +98,29 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
         builder: (context, state) {
           final mediaQuery = MediaQuery.of(context);
           final bottomInset = mediaQuery.viewInsets.bottom;
-          final shouldAutoScroll =
-              state.messages.length > _lastMessageCount && _isNearBottom();
+          final shouldAutoScroll = state.messages.length > _lastMessageCount && _isNearBottom();
           _lastMessageCount = state.messages.length;
 
           if (shouldAutoScroll) {
             _scrollToBottom();
           }
 
-          return GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: AnimatedPadding(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.only(bottom: math.max(0, bottomInset - 12)),
-              child: Column(
-                children: [
-                  // Messages list
-                  Expanded(
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(bottom: math.max(0, bottomInset - 12)),
+            child: Column(
+              children: [
+                // Messages list: TapRegion only here — tapping a message or
+                // empty space dismisses keyboard without intercepting long-press,
+                // and without affecting the input bar buttons (paste, send, etc).
+                Expanded(
+                  child: TapRegion(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     child: ListView.builder(
                       controller: _scrollController,
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      // Manual dismiss — scrolling won't kill keyboard during paste.
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                       padding: const EdgeInsets.fromLTRB(12, 14, 12, 18),
                       itemCount: state.messages.length,
                       itemBuilder: (context, index) {
@@ -129,15 +129,16 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
                       },
                     ),
                   ),
-                  // Input area based on current step
-                  ChatInputArea(
-                    currentStep: state.currentStep,
-                    onUrlSubmit: (url) => context.read<ChatFlowCubit>().submitUrl(url),
-                    onJsonSubmit: (json) => context.read<ChatFlowCubit>().submitJson(json),
-                    errorMessage: state.errorMessage,
-                  ),
-                ],
-              ),
+                ),
+                // Input area — NOT inside TapRegion so paste/send buttons don't
+                // accidentally trigger unfocus before their own onPressed runs.
+                ChatInputArea(
+                  currentStep: state.currentStep,
+                  onUrlSubmit: (url) => context.read<ChatFlowCubit>().submitUrl(url),
+                  onJsonSubmit: (json) => context.read<ChatFlowCubit>().submitJson(json),
+                  errorMessage: state.errorMessage,
+                ),
+              ],
             ),
           );
         },
@@ -145,11 +146,7 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
     );
   }
 
-  Widget _buildMessageItem(
-    BuildContext context,
-    ChatMessage message,
-    ChatFlowState state,
-  ) {
+  Widget _buildMessageItem(BuildContext context, ChatMessage message, ChatFlowState state) {
     // For special message types that need interaction, use specialized builders
     if (message.type == MessageType.languageSelection && state is ChatFlowLanguageSelection) {
       return _buildLanguageSelector(context, state);
@@ -174,10 +171,7 @@ class _ChatFlowPageState extends State<ChatFlowPage> {
     }
 
     // For regular messages, use the bubble
-    return ChatMessageBubble(
-      message: message,
-      state: state,
-    );
+    return ChatMessageBubble(message: message, state: state);
   }
 
   /// Build language selector chips

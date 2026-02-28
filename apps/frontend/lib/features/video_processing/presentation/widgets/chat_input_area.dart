@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../cubits/chat_flow_cubit.dart';
 import '../../../../../i18n/strings.g.dart';
@@ -68,11 +69,51 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     }
   }
 
+  /// Focuses the field and attempts a clipboard read.
+  ///
+  /// Strategy (iOS Safari compatible):
+  /// 1. Focus the field FIRST — this is always reliable and lets the user
+  ///    long-press to get the native iOS "Paste" popup.
+  /// 2. Silently try `Clipboard.getData` — on iOS 16+ this may trigger an
+  ///    "Allow Paste" dialog and auto-fill; on older iOS it silently fails.
+  /// 3. Show a snackbar to guide the user to hold-press → Paste.
+  Future<void> _pasteInto(TextEditingController controller, FocusNode focusNode) async {
+    // Step 1: always focus the field so the user can long-press immediately.
+    focusNode.requestFocus();
+
+    // Show the guide snackbar right away (before the async clipboard attempt)
+    // so the user knows what to do if the auto-paste doesn't fire.
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(content: Text(t.common.pasteHint), duration: const Duration(seconds: 4)),
+        );
+    }
+
+    // Step 2: best-effort clipboard read (works on desktop, Android,
+    // and iOS 16+ with user permission prompt).
+    ClipboardData? data;
+    try {
+      data = await Clipboard.getData(Clipboard.kTextPlain);
+    } catch (_) {
+      data = null;
+    }
+
+    if (data?.text != null && data!.text!.isNotEmpty && mounted) {
+      setState(() => controller.text = data!.text!);
+      controller.selection = TextSelection.collapsed(offset: controller.text.length);
+      // Dismiss the snackbar since we successfully auto-pasted.
+      ScaffoldMessenger.of(context).clearSnackBars();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return switch (widget.currentStep) {
       ChatStep.welcome => _buildUrlInput(context),
-      ChatStep.languageSelection => const SizedBox.shrink(), // Language selection uses buttons, not input
+      ChatStep.languageSelection =>
+        const SizedBox.shrink(), // Language selection uses buttons, not input
       ChatStep.analyzing => _buildDisabledInput(context, t.chat.analyzingVideo),
       ChatStep.metadata => const SizedBox.shrink(),
       ChatStep.buildingPrompt => const SizedBox.shrink(),
@@ -93,11 +134,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -109,16 +146,19 @@ class _ChatInputAreaState extends State<ChatInputArea> {
               decoration: InputDecoration(
                 hintText: t.chat.urlHint,
                 prefixIcon: const Icon(Icons.link),
+                // Paste button as suffix — always visible, solves iOS Safari issue
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.content_paste),
+                  onPressed: () => _pasteInto(_urlController, _urlFocusNode),
+                  tooltip: t.common.pasteAction,
+                ),
                 filled: true,
                 fillColor: colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
               keyboardType: TextInputType.url,
               textInputAction: TextInputAction.send,
@@ -152,16 +192,32 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Header row with paste button
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.chat.pasteJsonPrompt,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+              FilledButton.tonalIcon(
+                onPressed: () => _pasteInto(_jsonController, _jsonFocusNode),
+                icon: const Icon(Icons.content_paste, size: 16),
+                label: Text(t.common.pasteAction),
+                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: _jsonController,
             focusNode: _jsonFocusNode,
@@ -179,24 +235,17 @@ class _ChatInputAreaState extends State<ChatInputArea> {
               ),
               contentPadding: const EdgeInsets.all(16),
             ),
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 13,
-              height: 1.35,
-            ),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.35),
             textCapitalization: TextCapitalization.none,
             autocorrect: false,
             enableSuggestions: false,
+            // Ensure native iOS paste context menu works correctly
+            contextMenuBuilder: (context, editableTextState) =>
+                AdaptiveTextSelectionToolbar.editableText(editableTextState: editableTextState),
           ),
           if (widget.errorMessage != null) ...[
             const SizedBox(height: 8),
-            Text(
-              widget.errorMessage!,
-              style: TextStyle(
-                color: colorScheme.error,
-                fontSize: 13,
-              ),
-            ),
+            Text(widget.errorMessage!, style: TextStyle(color: colorScheme.error, fontSize: 13)),
           ],
           const SizedBox(height: 12),
           SizedBox(
@@ -220,29 +269,17 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + math.max(bottomSafe, 8)),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
           SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: colorScheme.primary,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
           ),
           const SizedBox(width: 12),
-          Text(
-            message,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
+          Text(message, style: TextStyle(color: colorScheme.onSurfaceVariant)),
         ],
       ),
     );

@@ -116,8 +116,26 @@ class FunnyThreadsApp extends StatelessWidget {
           locale: TranslationProvider.of(context).flutterLocale, // use slang locale
           supportedLocales: AppLocaleUtils.supportedLocales,
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          // Fix for Flutter Web: ensure Directionality is always available
+          // This prevents "Null check operator used on a null value" errors
+          // with Icon, AlignmentDirectional, and RenderMergeSemantics
+          builder: (context, child) {
+            final locale = Localizations.localeOf(context);
+            final textDirection = _getTextDirection(locale);
+            return Directionality(
+              textDirection: textDirection,
+              child: child!,
+            );
+          },
         );
       },
     );
+  }
+
+  /// Determine text direction based on locale
+  TextDirection _getTextDirection(Locale locale) {
+    // All supported locales (en, uk, ru) are LTR
+    // Add RTL locales here if needed in the future
+    return TextDirection.ltr;
   }
 }

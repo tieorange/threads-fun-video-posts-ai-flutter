@@ -63,14 +63,11 @@ class _GeminiStepPageState extends State<GeminiStepPage> {
       return;
     }
 
-    // Safari iOS: clipboard API restricted — focus field so user can long-press → Paste.
+    // Safari iOS: clipboard read is restricted — focus field so user can long-press → Paste.
     _focusNode.requestFocus();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Long-press the text field, then tap Paste'),
-          duration: Duration(seconds: 3),
-        ),
+        SnackBar(content: Text(t.common.pasteHint), duration: const Duration(seconds: 3)),
       );
     }
   }
@@ -105,116 +102,108 @@ class _GeminiStepPageState extends State<GeminiStepPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Step 1: copy prompt & open Gemini ─────────────────
-                  _Step1Card(
-                    step1Done: _step1Done,
-                    onCopyAndOpen: _copyAndOpen,
-                  ),
+                  _Step1Card(step1Done: _step1Done, onCopyAndOpen: _copyAndOpen),
                   const SizedBox(height: 16),
 
                   // ── Step 2: paste response ─────────────────────────────
                   AnimatedOpacity(
-                      opacity: _step1Done ? 1.0 : 0.45,
-                      duration: const Duration(milliseconds: 300),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      t.geminiStep.step2Title,
-                                      style: textTheme.titleMedium,
-                                    ),
+                    opacity: _step1Done ? 1.0 : 0.45,
+                    duration: const Duration(milliseconds: 300),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    t.geminiStep.step2Title,
+                                    style: textTheme.titleMedium,
                                   ),
-                                  const SizedBox(width: 8),
-                                  FilledButton.tonalIcon(
-                                    onPressed: _pasteFromClipboard,
-                                    icon: const Icon(Icons.content_paste, size: 18),
-                                    label: Text(t.common.paste),
-                                    style: FilledButton.styleFrom(
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (_step1Done) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  t.geminiStep.step2Hint,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                FilledButton.tonalIcon(
+                                  onPressed: _pasteFromClipboard,
+                                  icon: const Icon(Icons.content_paste, size: 18),
+                                  label: Text(t.common.paste),
+                                  style: FilledButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
                                   ),
                                 ),
                               ],
-                              const SizedBox(height: 10),
-                              SizedBox(
-                                height: 220,
-                                child: TextField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  maxLines: null,
-                                  expands: true,
-                                  textAlignVertical: TextAlignVertical.top,
-                                  decoration: InputDecoration(
-                                    hintText: t.paste.hint,
-                                    border: const OutlineInputBorder(),
-                                    alignLabelWithHint: true,
-                                  ),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontFamily: 'monospace',
-                                  ),
-                                  contextMenuBuilder:
-                                      (context, editableTextState) =>
-                                          AdaptiveTextSelectionToolbar.editableText(
-                                            editableTextState: editableTextState,
-                                          ),
+                            ),
+                            if (_step1Done) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                t.geminiStep.step2Hint,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              BlocBuilder<JsonPasteCubit, JsonPasteState>(
-                                builder: (context, state) {
-                                  if (state is JsonPasteInvalid) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
-                                      child: Card(
-                                        color: colorScheme.errorContainer,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Icon(
-                                                Icons.error_outline,
-                                                color: colorScheme.onErrorContainer,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  state.message,
-                                                  style: TextStyle(
-                                                    color: colorScheme
-                                                        .onErrorContainer,
-                                                  ),
+                            ],
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              height: 220,
+                              child: TextField(
+                                controller: _controller,
+                                focusNode: _focusNode,
+                                maxLines: null,
+                                expands: true,
+                                textAlignVertical: TextAlignVertical.top,
+                                decoration: InputDecoration(
+                                  hintText: t.paste.hint,
+                                  border: const OutlineInputBorder(),
+                                  alignLabelWithHint: true,
+                                ),
+                                style: textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
+                                contextMenuBuilder: (context, editableTextState) =>
+                                    AdaptiveTextSelectionToolbar.editableText(
+                                      editableTextState: editableTextState,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            BlocBuilder<JsonPasteCubit, JsonPasteState>(
+                              builder: (context, state) {
+                                if (state is JsonPasteInvalid) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: Card(
+                                      color: colorScheme.errorContainer,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Icon(
+                                              Icons.error_outline,
+                                              color: colorScheme.onErrorContainer,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                state.message,
+                                                style: TextStyle(
+                                                  color: colorScheme.onErrorContainer,
                                                 ),
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    );
-                                  }
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                            ],
-                          ),
+                                    ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ],
                         ),
                       ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
@@ -237,10 +226,7 @@ class _GeminiStepPageState extends State<GeminiStepPage> {
 // ── Step 1 card extracted for clarity ──────────────────────────────────────
 
 class _Step1Card extends StatelessWidget {
-  const _Step1Card({
-    required this.step1Done,
-    required this.onCopyAndOpen,
-  });
+  const _Step1Card({required this.step1Done, required this.onCopyAndOpen});
 
   final bool step1Done;
   final VoidCallback onCopyAndOpen;
@@ -260,9 +246,7 @@ class _Step1Card extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               t.geminiStep.step1Hint,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
 
@@ -300,9 +284,7 @@ class _Step1Card extends StatelessWidget {
                 return FilledButton.icon(
                   onPressed: onCopyAndOpen,
                   icon: Icon(copied ? Icons.check : Icons.open_in_new),
-                  label: Text(
-                    copied ? t.geminiStep.copiedLabel : t.geminiStep.copyOpen,
-                  ),
+                  label: Text(copied ? t.geminiStep.copiedLabel : t.geminiStep.copyOpen),
                 );
               },
             ),

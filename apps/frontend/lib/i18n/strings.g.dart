@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 208 (104 per locale)
+/// Strings: 212 (106 per locale)
 ///
-/// Built on 2026-02-27 at 19:55 UTC
+/// Built on 2026-02-28 at 14:17 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -179,6 +179,8 @@ class _StringsCommonUk {
 	String get toggleDark => 'Темна тема';
 	String get toggleLight => 'Світла тема';
 	String get paste => 'Вставити';
+	String get pasteAction => '📋 Вставити';
+	String get pasteHint => 'Утримайте поле і тапніть "Вставити"';
 }
 
 // Path: analyze
@@ -409,6 +411,8 @@ class _StringsCommonEn implements _StringsCommonUk {
 	@override String get toggleDark => 'Dark Theme';
 	@override String get toggleLight => 'Light Theme';
 	@override String get paste => 'Paste';
+	@override String get pasteAction => '📋 Paste';
+	@override String get pasteHint => 'Hold the field and tap "Paste"';
 }
 
 // Path: analyze
@@ -603,6 +607,8 @@ extension on Translations {
 			case 'common.toggleDark': return 'Темна тема';
 			case 'common.toggleLight': return 'Світла тема';
 			case 'common.paste': return 'Вставити';
+			case 'common.pasteAction': return '📋 Вставити';
+			case 'common.pasteHint': return 'Утримайте поле і тапніть "Вставити"';
 			case 'analyze.title': return 'Funny Threads AI';
 			case 'analyze.subtitle': return 'Перетворюйте YouTube відео на віральні кліпи';
 			case 'analyze.urlLabel': return 'YouTube URL';
@@ -715,6 +721,8 @@ extension on _StringsEn {
 			case 'common.toggleDark': return 'Dark Theme';
 			case 'common.toggleLight': return 'Light Theme';
 			case 'common.paste': return 'Paste';
+			case 'common.pasteAction': return '📋 Paste';
+			case 'common.pasteHint': return 'Hold the field and tap "Paste"';
 			case 'analyze.title': return 'Funny Threads AI';
 			case 'analyze.subtitle': return 'Turn a YouTube video into viral clips';
 			case 'analyze.urlLabel': return 'YouTube URL';

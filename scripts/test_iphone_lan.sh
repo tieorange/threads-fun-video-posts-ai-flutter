@@ -7,6 +7,16 @@ FE_PORT="${FE_PORT:-3001}"
 NETWORK_IFACE="${NETWORK_IFACE:-}"
 SKIP_INSTALL="${SKIP_INSTALL:-0}"
 MAC_IP="${MAC_IP:-}"
+DEBUG_MODE="${DEBUG_MODE:-0}"
+
+# Determine Flutter run mode
+if [[ "${DEBUG_MODE}" == "1" ]]; then
+  FLUTTER_MODE="--debug"
+  MODE_LABEL="DEBUG (hot reload enabled)"
+else
+  FLUTTER_MODE="--profile"
+  MODE_LABEL="PROFILE (no hot reload)"
+fi
 
 if [[ -z "${MAC_IP}" ]]; then
   if [[ -z "${NETWORK_IFACE}" ]]; then
@@ -40,6 +50,7 @@ echo "- Interface: ${NETWORK_IFACE}"
 echo "- Mac IP:    ${MAC_IP}"
 echo "- Backend:   ${API_BASE_URL}"
 echo "- Frontend:  ${FRONTEND_URL}"
+echo "- Mode:      ${MODE_LABEL}"
 echo ""
 
 if command -v qrencode >/dev/null 2>&1; then
@@ -78,7 +89,7 @@ BE_PID=$!
 (
   cd "${ROOT_DIR}/apps/frontend"
   flutter run -d web-server \
-    --profile \
+    ${FLUTTER_MODE} \
     --web-hostname 0.0.0.0 \
     --web-port "${FE_PORT}" \
     --dart-define=API_BASE_URL="${API_BASE_URL}" 2>&1 | sed 's/^/[FE] /'

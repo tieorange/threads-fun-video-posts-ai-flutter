@@ -12,7 +12,9 @@
         "refresh": "Оновити",
         "toggleDark": "Темна тема",
         "toggleLight": "Світла тема",
-        "paste": "Вставити"
+        "paste": "Вставити",
+        "pasteAction": "📋 Вставити",
+        "pasteHint": "Утримайте поле і тапніть \"Вставити\""
     },
     "analyze": {
         "title": "Funny Threads AI",

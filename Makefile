@@ -1,6 +1,6 @@
 # 🛠️ Funny Threads AI Makefile
 
-.PHONY: help run run-all run-be run-fe install lint clean iphone iphone-fast
+.PHONY: help run run-all run-be run-fe install lint clean iphone iphone-fast iphoned
 
 API_BASE_URL ?= http://localhost:3000
 BE_PORT ?= 3000
@@ -41,6 +41,12 @@ iphone: ## Run BE+FE for iPhone on local network with CLI QR
 
 iphone-fast: ## Same as iphone, but skip npm/flutter install
 	BE_PORT=$(BE_PORT) FE_PORT=$(FE_PORT) NETWORK_IFACE=$(NETWORK_IFACE) MAC_IP=$(MAC_IP) SKIP_INSTALL=1 ./scripts/test_iphone_lan.sh
+
+iphoned: ## Run BE+FE for iPhone with DEBUG mode + hot reload support
+	BE_PORT=$(BE_PORT) FE_PORT=$(FE_PORT) NETWORK_IFACE=$(NETWORK_IFACE) MAC_IP=$(MAC_IP) SKIP_INSTALL=0 DEBUG_MODE=1 ./scripts/test_iphone_lan.sh
+
+iphoned-fast: ## Same as iphoned, but skip npm/flutter install
+	BE_PORT=$(BE_PORT) FE_PORT=$(FE_PORT) NETWORK_IFACE=$(NETWORK_IFACE) MAC_IP=$(MAC_IP) SKIP_INSTALL=1 DEBUG_MODE=1 ./scripts/test_iphone_lan.sh
 
 # --- Development ---
 

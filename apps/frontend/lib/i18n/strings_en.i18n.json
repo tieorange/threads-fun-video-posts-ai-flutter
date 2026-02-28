@@ -12,7 +12,9 @@
         "refresh": "Refresh",
         "toggleDark": "Dark Theme",
         "toggleLight": "Light Theme",
-        "paste": "Paste"
+        "paste": "Paste",
+        "pasteAction": "📋 Paste",
+        "pasteHint": "Hold the field and tap \"Paste\""
     },
     "analyze": {
         "title": "Funny Threads AI",

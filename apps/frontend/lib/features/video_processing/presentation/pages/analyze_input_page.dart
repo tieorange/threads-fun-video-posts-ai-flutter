@@ -66,10 +66,7 @@ class _AnalyzeInputPageState extends State<AnalyzeInputPage> {
     _urlFocusNode.requestFocus();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Long-press the text field, then tap Paste'),
-          duration: Duration(seconds: 3),
-        ),
+        SnackBar(content: Text(t.common.pasteHint), duration: const Duration(seconds: 3)),
       );
     }
   }
