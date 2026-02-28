@@ -1,6 +1,6 @@
 # 🛠️ Funny Threads AI Makefile
 
-.PHONY: help run run-all run-be run-fe install lint clean iphone iphone-fast iphoned
+.PHONY: help dev run run-all run-be run-fe install lint clean iphone iphone-fast iphoned
 
 API_BASE_URL ?= http://localhost:3000
 BE_PORT ?= 3000
@@ -12,6 +12,15 @@ help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # --- Running ---
+
+dev: ## Run BE+FE in Chrome with hot reload (r key works)
+	@bash -lc '\
+	( cd apps/backend && npm run dev 2>&1 | sed "s/^/[BE] /" ) & \
+	BE_PID=$$!; \
+	cleanup(){ kill $$BE_PID 2>/dev/null || true; wait $$BE_PID 2>/dev/null || true; }; \
+	trap cleanup INT TERM EXIT; \
+	cd apps/frontend && flutter run -d chrome --debug --dart-define=API_BASE_URL=$(API_BASE_URL); \
+	'
 
 run: ## Run backend + frontend together with prefixed logs
 	@$(MAKE) run-all

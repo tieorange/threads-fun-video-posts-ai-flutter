@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/chat_message.dart';
 import '../cubits/chat_flow_cubit.dart';
 import 'chat_video_metadata_card.dart';
 import 'chat_prompt_card.dart';
 import 'chat_typing_indicator.dart';
+import '../../../../../i18n/strings.g.dart';
 
 /// Widget that renders individual chat messages with appropriate styling
 class ChatMessageBubble extends StatelessWidget {
-  const ChatMessageBubble({
-    super.key,
-    required this.message,
-    required this.state,
-  });
+  const ChatMessageBubble({super.key, required this.message, required this.state});
 
   final ChatMessage message;
   final ChatFlowState state;
@@ -36,16 +34,12 @@ class ChatMessageBubble extends StatelessWidget {
     final backgroundColor = isUser
         ? colorScheme.primaryContainer
         : colorScheme.surfaceContainerHighest;
-    final textColor = isUser
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurfaceVariant;
+    final textColor = isUser ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant;
 
     return Align(
       alignment: alignment,
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.86,
-        ),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.86),
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
@@ -60,21 +54,11 @@ class ChatMessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              message.text,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 15,
-                height: 1.35,
-              ),
-            ),
+            Text(message.text, style: TextStyle(color: textColor, fontSize: 15, height: 1.35)),
             const SizedBox(height: 6),
             Text(
               _formatTime(message.timestamp),
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.72),
-                fontSize: 11,
-              ),
+              style: TextStyle(color: textColor.withValues(alpha: 0.72), fontSize: 11),
             ),
           ],
         ),
@@ -89,14 +73,13 @@ class ChatMessageBubble extends StatelessWidget {
   }
 
   Widget _buildErrorBubble(BuildContext context, ColorScheme colorScheme) {
+    final isRecoverable = state is ChatFlowError;
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.86,
-        ),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.86),
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         decoration: BoxDecoration(
           color: colorScheme.errorContainer,
           borderRadius: const BorderRadius.only(
@@ -106,25 +89,41 @@ class ChatMessageBubble extends StatelessWidget {
             bottomRight: Radius.circular(16),
           ),
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.error_outline,
-              color: colorScheme.onErrorContainer,
-              size: 20,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, color: colorScheme.onErrorContainer, size: 20),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    message.text,
+                    style: TextStyle(
+                      color: colorScheme.onErrorContainer,
+                      fontSize: 15,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  color: colorScheme.onErrorContainer,
-                  fontSize: 15,
-                  height: 1.35,
+            if (isRecoverable) ...[
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: () => context.read<ChatFlowCubit>().retry(),
+                icon: Icon(Icons.refresh, size: 16, color: colorScheme.onErrorContainer),
+                label: Text(t.chat.retry, style: TextStyle(color: colorScheme.onErrorContainer)),
+                style: TextButton.styleFrom(
+                  backgroundColor: colorScheme.error.withValues(alpha: 0.15),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -135,9 +134,7 @@ class ChatMessageBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.86,
-        ),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.86),
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
@@ -160,10 +157,7 @@ class ChatMessageBubble extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                 child: Text(
                   message.text,
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
                 ),
               ),
           ],

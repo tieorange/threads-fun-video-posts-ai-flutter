@@ -60,6 +60,18 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
   }
 
   void _generate() {
+    // Guard: don't submit a new job if one is already running
+    final processState = context.read<ProcessCubit>().state;
+    if (processState is! ProcessIdle) {
+      // If job done, just go to results; if still running go back to processing
+      if (processState is ProcessDone) {
+        context.go('/results');
+      } else {
+        context.go('/processing');
+      }
+      return;
+    }
+
     final selected = context.read<MomentsReviewCubit>().state.selectedMoments;
     if (selected.length < _minMomentsToGenerate) {
       ScaffoldMessenger.of(
@@ -103,7 +115,7 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
 
     return AppShellScaffold(
       title: t.review.title,
-      leading: BackButton(onPressed: () => context.go('/prompt')),
+      leading: BackButton(onPressed: () => context.go('/')),
       actions: [
         if (!isCompact)
           BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
@@ -203,13 +215,22 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
         },
       ),
       bottomNavigationBar: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
-        builder: (context, state) {
-          return _BottomBar(
-            selectedCount: state.selected.length,
-            totalCount: state.moments.length,
-            generateText: _generateText(state.selected.length),
-            selectedInfoText: _selectedInfoText(state.selected.length, state.moments.length),
-            onGenerate: _generate,
+        builder: (context, reviewState) {
+          return BlocBuilder<ProcessCubit, ProcessState>(
+            builder: (context, processState) {
+              final isProcessing = processState is! ProcessIdle;
+              return _BottomBar(
+                selectedCount: reviewState.selected.length,
+                totalCount: reviewState.moments.length,
+                generateText: _generateText(reviewState.selected.length),
+                selectedInfoText: _selectedInfoText(
+                  reviewState.selected.length,
+                  reviewState.moments.length,
+                ),
+                onGenerate: isProcessing ? null : _generate,
+                isProcessingActive: isProcessing,
+              );
+            },
           );
         },
       ),
@@ -508,7 +529,7 @@ class _BottomBar extends StatelessWidget {
   final String generateText;
   final String selectedInfoText;
   final VoidCallback onGenerate;
-  static const int _minMomentsToGenerate = 1;
+  static const int _minMomentsToGenerate = 3;
 
   @override
   Widget build(BuildContext context) {

@@ -15,11 +15,7 @@ enum ChatStep {
 
 /// Base sealed class for all chat flow states
 sealed class ChatFlowState {
-  const ChatFlowState({
-    required this.messages,
-    required this.currentStep,
-    this.errorMessage,
-  });
+  const ChatFlowState({required this.messages, required this.currentStep, this.errorMessage});
 
   /// Conversation history - immutable list
   final List<ChatMessage> messages;
@@ -39,29 +35,22 @@ sealed class ChatFlowState {
 
 /// Initial state - bot welcomes user
 final class ChatFlowInitial extends ChatFlowState {
-  const ChatFlowInitial({
-    required super.messages,
-    super.errorMessage,
-  }) : super(currentStep: ChatStep.welcome);
+  const ChatFlowInitial({required super.messages, super.errorMessage})
+    : super(currentStep: ChatStep.welcome);
 }
 
 /// Language selection state - waiting for user to select language
 final class ChatFlowLanguageSelection extends ChatFlowState {
-  const ChatFlowLanguageSelection({
-    required super.messages,
-    required this.url,
-  }) : super(currentStep: ChatStep.languageSelection);
+  const ChatFlowLanguageSelection({required super.messages, required this.url})
+    : super(currentStep: ChatStep.languageSelection);
 
   final String url;
 }
 
 /// Analyzing state - shows loading indicator in chat
 final class ChatFlowAnalyzing extends ChatFlowState {
-  const ChatFlowAnalyzing({
-    required super.messages,
-    required this.url,
-    required this.language,
-  }) : super(currentStep: ChatStep.analyzing);
+  const ChatFlowAnalyzing({required super.messages, required this.url, required this.language})
+    : super(currentStep: ChatStep.analyzing);
 
   final String url;
   final String language;
@@ -81,10 +70,8 @@ final class ChatFlowMetadata extends ChatFlowState {
 
 /// Prompt building state - transient loading state
 final class ChatFlowBuildingPrompt extends ChatFlowState {
-  const ChatFlowBuildingPrompt({
-    required super.messages,
-    required this.language,
-  }) : super(currentStep: ChatStep.buildingPrompt);
+  const ChatFlowBuildingPrompt({required super.messages, required this.language})
+    : super(currentStep: ChatStep.buildingPrompt);
 
   final String language;
 }
@@ -115,10 +102,8 @@ final class ChatFlowJsonInput extends ChatFlowState {
 
 /// Validating state - JSON validation in progress
 final class ChatFlowValidating extends ChatFlowState {
-  const ChatFlowValidating({
-    required super.messages,
-    required this.jsonInput,
-  }) : super(currentStep: ChatStep.validating);
+  const ChatFlowValidating({required super.messages, required this.jsonInput})
+    : super(currentStep: ChatStep.validating);
 
   final String jsonInput;
 }
@@ -139,16 +124,21 @@ final class ChatFlowCompleted extends ChatFlowState {
 
 /// Error state - recoverable error with retry option
 final class ChatFlowError extends ChatFlowState {
-  const ChatFlowError({
+  ChatFlowError({
     required super.messages,
     required super.errorMessage,
     required this.recoverableStep,
     this.recoverableData,
-  }) : super(currentStep: ChatStep.welcome);
+  }) : super(
+         // Surface the correct input widget based on where the error happened.
+         // jsonInput errors → show JSON paste box; others → show URL input.
+         currentStep: recoverableStep == ChatStep.jsonInput ? ChatStep.jsonInput : ChatStep.welcome,
+       );
 
   /// The step to return to for retry
   final ChatStep recoverableStep;
 
-  /// Optional data needed to recover (e.g., URL for language selection retry)
+  /// Optional data needed to recover (e.g., URL for language selection retry,
+  /// prompt+analyzeResult for JSON input retry)
   final Map<String, dynamic>? recoverableData;
 }
