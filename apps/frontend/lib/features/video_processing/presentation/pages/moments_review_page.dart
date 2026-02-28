@@ -9,6 +9,8 @@ import '../cubits/process_cubit.dart';
 import '../../../../../core/widgets/app_shell_scaffold.dart';
 import '../../../../../i18n/strings.g.dart';
 
+const int _minMomentsToGenerate = 3;
+
 class MomentsReviewPage extends StatefulWidget {
   const MomentsReviewPage({super.key, required this.youtubeUrl, required this.aiPayload});
 
@@ -20,8 +22,10 @@ class MomentsReviewPage extends StatefulWidget {
 }
 
 class _MomentsReviewPageState extends State<MomentsReviewPage> {
-  static const int _minMomentsToGenerate = 3;
   final _registeredFrames = <String>{};
+  // Unique nonce per page session — prevents global platformViewRegistry collisions
+  // when the user processes multiple videos in the same browser session.
+  final _sessionNonce = DateTime.now().millisecondsSinceEpoch;
 
   String _videoId(String url) {
     final uri = Uri.tryParse(url);
@@ -38,7 +42,12 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
     return 'https://www.youtube.com/embed/$videoId?start=$start&end=$end&autoplay=1&rel=0';
   }
 
-  Widget _buildIframe(String frameId, String iframeSrc) {
+  Widget _buildIframe(String rawFrameId, String iframeSrc) {
+    // Prefix with session nonce so each MomentsReviewPage session gets unique
+    // factory IDs in the global platformViewRegistry. Without this, navigating
+    // to a second video that shares moment IDs with the first would reuse the
+    // old iframe factory and show the wrong video.
+    final frameId = '${_sessionNonce}_$rawFrameId';
     if (!_registeredFrames.contains(frameId)) {
       _registeredFrames.add(frameId);
       // ignore: undefined_prefixed_name
@@ -59,16 +68,37 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
     return HtmlElementView(viewType: frameId);
   }
 
+  Future<void> _showStartOverConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.chat.resetConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.results.startOver),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      context.read<ProcessCubit>().resetAll(context);
+      context.go('/');
+    }
+  }
+
   void _generate() {
-    // Guard: don't submit a new job if one is already running
+    // Guard: only block if a job is actively in-flight.
+    // ProcessDone means a *previous* job finished — the user may have navigated
+    // back without pressing "Start Over", so we must allow a new submission
+    // rather than sending them to stale results.
     final processState = context.read<ProcessCubit>().state;
-    if (processState is! ProcessIdle) {
-      // If job done, just go to results; if still running go back to processing
-      if (processState is ProcessDone) {
-        context.go('/results');
-      } else {
-        context.go('/processing');
-      }
+    if (processState is ProcessSubmitting || processState is ProcessRunning) {
+      context.go('/processing');
       return;
     }
 
@@ -132,6 +162,11 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
               );
             },
           ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: t.results.startOver,
+          onPressed: _showStartOverConfirmation,
+        ),
       ],
       body: BlocBuilder<MomentsReviewCubit, MomentsReviewState>(
         builder: (context, state) {
@@ -218,7 +253,10 @@ class _MomentsReviewPageState extends State<MomentsReviewPage> {
         builder: (context, reviewState) {
           return BlocBuilder<ProcessCubit, ProcessState>(
             builder: (context, processState) {
-              final isProcessing = processState is! ProcessIdle;
+              // Disable Generate only while a job is actively in-flight.
+              // ProcessDone/ProcessFailure/ProcessIdle should all allow a new submission.
+              final isProcessing =
+                  processState is ProcessSubmitting || processState is ProcessRunning;
               return _BottomBar(
                 selectedCount: reviewState.selected.length,
                 totalCount: reviewState.moments.length,
@@ -277,7 +315,7 @@ class _SelectionSummaryBar extends StatelessWidget {
             icon: Icon(allSelected ? Icons.clear_all : Icons.done_all),
             label: Text(allSelected ? t.review.deselectAll : t.review.selectAll),
           ),
-          if (selectedCount < 1)
+          if (selectedCount < _minMomentsToGenerate)
             Text(
               t.review.minSelectionError,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -522,14 +560,15 @@ class _BottomBar extends StatelessWidget {
     required this.generateText,
     required this.selectedInfoText,
     required this.onGenerate,
+    required this.isProcessingActive,
   });
 
   final int selectedCount;
   final int totalCount;
   final String generateText;
   final String selectedInfoText;
-  final VoidCallback onGenerate;
-  static const int _minMomentsToGenerate = 3;
+  final VoidCallback? onGenerate;
+  final bool isProcessingActive;
 
   @override
   Widget build(BuildContext context) {

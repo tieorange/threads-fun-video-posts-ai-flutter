@@ -15,6 +15,7 @@ help: ## Display available commands
 
 dev: ## Run BE+FE in Chrome with hot reload (r key works)
 	@bash -lc '\
+	lsof -ti tcp:$(BE_PORT) | xargs kill -9 2>/dev/null || true; \
 	( cd apps/backend && npm run dev 2>&1 | sed "s/^/[BE] /" ) & \
 	BE_PID=$$!; \
 	cleanup(){ kill $$BE_PID 2>/dev/null || true; wait $$BE_PID 2>/dev/null || true; }; \

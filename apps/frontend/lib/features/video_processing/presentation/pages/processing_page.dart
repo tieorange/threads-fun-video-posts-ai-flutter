@@ -8,10 +8,41 @@ import '../../../../../i18n/strings.g.dart';
 class ProcessingPage extends StatelessWidget {
   const ProcessingPage({super.key});
 
+  void _showStartOver(BuildContext ctx) {
+    showDialog<bool>(
+      context: ctx,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.chat.resetConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.results.startOver),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true && ctx.mounted) {
+        ctx.read<ProcessCubit>().resetAll(ctx);
+        ctx.go('/');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppShellScaffold(
       title: t.processing.title,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: t.results.startOver,
+          onPressed: () => _showStartOver(context),
+        ),
+      ],
       body: BlocListener<ProcessCubit, ProcessState>(
         listener: (context, state) {
           if (state is ProcessDone) {

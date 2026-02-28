@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/logging/logger.dart';
 import '../../domain/entities/chat_message.dart';
+import '../../domain/entities/clip_artifact.dart';
 import '../../domain/entities/funny_moment.dart';
+import '../../domain/entities/job_status.dart';
 
 /// Local storage datasource for persisting chat state
 class ChatLocalStorageDatasource {
@@ -97,20 +99,25 @@ class ChatLocalStorageDatasource {
     }
   }
 
-  /// Save active job to SharedPreferences
+  /// Save active job to SharedPreferences.
+  /// Pass [doneStatus] when the job has completed to enable refresh-safe results.
   Future<void> saveJob({
     required String jobId,
     required List<FunnyMoment> moments,
     required String youtubeUrl,
+    JobStatus? doneStatus,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jobData = {
+      final jobData = <String, dynamic>{
         'jobId': jobId,
         'moments': moments.map((m) => m.toJson()).toList(),
         'youtubeUrl': youtubeUrl,
         'timestamp': DateTime.now().toIso8601String(),
       };
+      if (doneStatus != null) {
+        jobData['doneStatus'] = _jobStatusToJson(doneStatus);
+      }
       await prefs.setString(_jobKey, jsonEncode(jobData));
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to save job state: $e');
@@ -132,18 +139,63 @@ class ChatLocalStorageDatasource {
         return null;
       }
 
+      JobStatus? doneStatus;
+      if (data['doneStatus'] != null) {
+        doneStatus = _jobStatusFromJson(data['doneStatus'] as Map<String, dynamic>);
+      }
+
       return JobPersistenceData(
         jobId: data['jobId'] as String,
         moments: (data['moments'] as List<dynamic>)
             .map((m) => FunnyMoment.fromJson(m as Map<String, dynamic>))
             .toList(),
         youtubeUrl: data['youtubeUrl'] as String,
+        doneStatus: doneStatus,
       );
     } catch (e) {
       _logger.error('local_storage_error', 'Failed to load job state: $e');
       return null;
     }
   }
+
+  Map<String, dynamic> _jobStatusToJson(JobStatus s) => {
+    'jobId': s.jobId,
+    'status': s.status.name,
+    'progress': s.progress,
+    'error': s.error,
+    'clips': s.clips
+        .map(
+          (c) => {
+            'momentId': c.momentId,
+            'startSec': c.startSec,
+            'endSec': c.endSec,
+            'downloadUrl': c.downloadUrl,
+          },
+        )
+        .toList(),
+    'moments': s.moments.map((m) => m.toJson()).toList(),
+  };
+
+  JobStatus _jobStatusFromJson(Map<String, dynamic> j) => JobStatus(
+    jobId: j['jobId'] as String,
+    status: JobStatusType.values.firstWhere((e) => e.name == j['status']),
+    progress: j['progress'] as int,
+    error: j['error'] as String?,
+    clips: (j['clips'] as List<dynamic>)
+        .map((c) {
+          final m = c as Map<String, dynamic>;
+          return ClipArtifact(
+            momentId: m['momentId'] as String,
+            startSec: (m['startSec'] as num).toDouble(),
+            endSec: (m['endSec'] as num).toDouble(),
+            downloadUrl: m['downloadUrl'] as String,
+          );
+        })
+        .toList(),
+    moments: (j['moments'] as List<dynamic>)
+        .map((m) => FunnyMoment.fromJson(m as Map<String, dynamic>))
+        .toList(),
+  );
 
   /// Clear active job
   Future<void> clearJob() async {
@@ -213,9 +265,16 @@ class ChatPersistenceData {
 
 /// Data class for persisted job state
 class JobPersistenceData {
-  const JobPersistenceData({required this.jobId, required this.moments, required this.youtubeUrl});
+  const JobPersistenceData({
+    required this.jobId,
+    required this.moments,
+    required this.youtubeUrl,
+    this.doneStatus,
+  });
 
   final String jobId;
   final List<FunnyMoment> moments;
   final String youtubeUrl;
+  /// Non-null when the job completed — allows restoring [ProcessDone] on refresh.
+  final JobStatus? doneStatus;
 }

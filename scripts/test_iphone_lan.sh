@@ -86,14 +86,9 @@ trap cleanup EXIT INT TERM
 ) &
 BE_PID=$!
 
-(
-  cd "${ROOT_DIR}/apps/frontend"
-  flutter run -d web-server \
-    ${FLUTTER_MODE} \
-    --web-hostname 0.0.0.0 \
-    --web-port "${FE_PORT}" \
-    --dart-define=API_BASE_URL="${API_BASE_URL}" 2>&1 | sed 's/^/[FE] /'
-) &
-FE_PID=$!
-
-wait "${BE_PID}" "${FE_PID}"
+cd "${ROOT_DIR}/apps/frontend"
+flutter run -d web-server \
+  ${FLUTTER_MODE} \
+  --web-hostname 0.0.0.0 \
+  --web-port "${FE_PORT}" \
+  --dart-define=API_BASE_URL="${API_BASE_URL}"

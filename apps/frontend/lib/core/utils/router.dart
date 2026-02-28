@@ -74,6 +74,17 @@ final appRouter = GoRouter(
       return '/';
     }
 
+    // Guard: /processing with an already-done job → redirect to results
+    // This handles browser-back from /results landing on /processing.
+    if (path == '/processing' && sl<ProcessCubit>().state is ProcessDone) {
+      log.info(
+        'route_guard_processing_done_redirect',
+        'Redirected from /processing to /results because job is already done',
+        layer: AppLayer.presentation,
+      );
+      return '/results';
+    }
+
     return null;
   },
   routes: [

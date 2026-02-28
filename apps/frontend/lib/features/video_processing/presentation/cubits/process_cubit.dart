@@ -28,6 +28,7 @@ class ProcessCubit extends Cubit<ProcessState> {
 
   bool _isDisposed = false;
   String? _activeJobId;
+  String? _youtubeUrl;
   List<FunnyMoment> _moments = [];
 
   Future<void> startProcessing(
@@ -36,6 +37,7 @@ class ProcessCubit extends Cubit<ProcessState> {
     List<FunnyMoment> moments,
   ) async {
     _moments = moments;
+    _youtubeUrl = youtubeUrl;
     _log.info(
       'process_submit_start',
       'Submitting job',
@@ -67,15 +69,29 @@ class ProcessCubit extends Cubit<ProcessState> {
 
   Future<void> _restoreState() async {
     final jobData = await _storage.loadJob();
-    if (jobData != null) {
+    if (jobData == null) return;
+
+    _moments = jobData.moments;
+    _youtubeUrl = jobData.youtubeUrl;
+    _log.setJobId(jobData.jobId);
+
+    if (jobData.doneStatus != null) {
+      // Job already finished — restore results directly, no polling needed.
+      _log.info(
+        'process_restored_done',
+        'Restoring completed job from persistence',
+        layer: AppLayer.presentation,
+        jobId: jobData.jobId,
+        data: {'clipCount': jobData.doneStatus!.clips.length},
+      );
+      emit(ProcessDone(jobData.doneStatus!));
+    } else {
       _log.info(
         'process_restored',
         'Restoring active job from persistence',
         layer: AppLayer.presentation,
         jobId: jobData.jobId,
       );
-      _moments = jobData.moments;
-      _log.setJobId(jobData.jobId);
       emit(ProcessRunning(jobId: jobData.jobId, progress: 0));
       _startPolling(jobData.jobId);
     }
@@ -89,6 +105,7 @@ class ProcessCubit extends Cubit<ProcessState> {
 
       if (_isDisposed || _activeJobId != jobId) break;
 
+      JobStatus? doneStatus;
       final shouldContinue = result.fold(
         (failure) {
           _log.error(
@@ -121,6 +138,7 @@ class ProcessCubit extends Cubit<ProcessState> {
                 jobId: jobId,
                 data: {'clipCount': status.clips.length},
               );
+              doneStatus = status;
               emit(ProcessDone(status));
               return false;
             case JobStatusType.failed:
@@ -135,6 +153,16 @@ class ProcessCubit extends Cubit<ProcessState> {
           }
         },
       );
+
+      // Persist done state so /results survives a browser refresh.
+      if (doneStatus != null) {
+        await _storage.saveJob(
+          jobId: jobId,
+          moments: _moments,
+          youtubeUrl: _youtubeUrl ?? '',
+          doneStatus: doneStatus,
+        );
+      }
 
       if (!shouldContinue) break;
       await Future.delayed(const Duration(seconds: 2));
